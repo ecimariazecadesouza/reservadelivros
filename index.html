@@ -18,51 +18,28 @@
         body {
             background-color: #f8f9fc;
             font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            padding: 20px;
         }
         
-        .sidebar {
-            min-height: 100vh;
+        .header {
             background: linear-gradient(180deg, var(--primary-color) 10%, #224abe 100%);
             color: white;
-            position: fixed;
-            z-index: 100;
-        }
-        
-        .sidebar .nav-item {
-            margin-bottom: 0.25rem;
-        }
-        
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 1rem;
-        }
-        
-        .sidebar .nav-link:hover {
-            color: white;
-        }
-        
-        .sidebar .nav-link.active {
-            font-weight: 700;
-            color: white;
-        }
-        
-        .topbar {
-            height: 4.375rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
         
         .card {
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
             border: 1px solid #e3e6f0;
+            margin-bottom: 20px;
+            border-radius: 10px;
         }
         
         .card-header {
             background-color: #f8f9fc;
             border-bottom: 1px solid #e3e6f0;
-        }
-        
-        .table-responsive {
-            max-height: 500px;
+            font-weight: bold;
         }
         
         .status-badge {
@@ -108,198 +85,148 @@
         .comprovante-img:hover {
             transform: scale(1.5);
         }
+        
+        .stats-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .stats-card i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .stats-card h3 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .stats-card p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+        }
+        
+        .btn-action {
+            margin: 0 3px;
+        }
+        
+        .config-panel {
+            background-color: #f8f9fc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar px-0">
-                <div class="text-center my-4">
-                    <h5>Painel Administrativo</h5>
+        <!-- Header -->
+        <div class="header text-center">
+            <h1><i class="fas fa-tachometer-alt"></i> Painel Administrativo</h1>
+            <p>Gerenciamento de Inscrições</p>
+        </div>
+
+        <!-- Painel de Configuração -->
+        <div class="config-panel">
+            <h4><i class="fas fa-cog"></i> Configuração de Conexão</h4>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label for="scriptUrl" class="form-label">URL do Google Apps Script</label>
+                        <input type="text" class="form-control" id="scriptUrl" placeholder="Cole a URL do seu Google Apps Script aqui">
+                    </div>
                 </div>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">
-                            <i class="fas fa-fw fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-fw fa-users"></i>
-                            <span>Inscrições</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-fw fa-cog"></i>
-                            <span>Configurações</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-fw fa-sign-out-alt"></i>
-                            <span>Sair</span>
-                        </a>
-                    </li>
-                </ul>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary form-control" id="btnSaveConfig">Salvar URL</button>
+                    </div>
+                </div>
             </div>
+            <div class="alert alert-info">
+                <small>
+                    <strong>Instruções:</strong> 
+                    1. Implemente o Google Apps Script (código abaixo)<br>
+                    2. Implante como aplicativo web<br>
+                    3. Cole a URL fornecida no campo acima
+                </small>
+            </div>
+        </div>
 
-            <!-- Conteúdo Principal -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- Topbar -->
-                <div class="topbar mb-4">
-                    <nav class="navbar navbar-expand-lg navbar-light bg-white">
-                        <div class="container-fluid">
-                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topbarNav">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
-                            <div class="collapse navbar-collapse" id="topbarNav">
-                                <ul class="navbar-nav ms-auto">
-                                    <li class="nav-item dropdown no-arrow mx-1">
-                                        <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown">
-                                            <i class="fas fa-bell fa-fw"></i>
-                                            <span class="badge bg-danger badge-counter">3+</span>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item dropdown no-arrow">
-                                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                            <span class="mr-2 d-none d-lg-inline text-gray-600 small">Administrador</span>
-                                            <img class="img-profile rounded-circle" width="32" src="https://via.placeholder.com/32">
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </nav>
+        <!-- Cards de Estatísticas -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-card" style="background-color: #4e73df;">
+                    <i class="fas fa-users"></i>
+                    <h3 id="totalInscricoes">0</h3>
+                    <p>Total de Inscrições</p>
                 </div>
-
-                <!-- Conteúdo -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                            <h1 class="h3 mb-0 text-gray-800">Gerenciamento de Inscrições</h1>
-                            <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" id="btnAtualizar">
-                                <i class="fas fa-sync-alt fa-sm text-white-50"></i> Atualizar Dados
-                            </button>
-                        </div>
-                    </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background-color: #1cc88a;">
+                    <i class="fas fa-check-circle"></i>
+                    <h3 id="totalConfirmados">0</h3>
+                    <p>Confirmados</p>
                 </div>
-
-                <!-- Cards de Estatísticas -->
-                <div class="row">
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-primary shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                            Total de Inscrições
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalInscricoes">0</div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-users fa-2x text-gray-300"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-success shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                            Confirmados
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalConfirmados">0</div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-warning shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                            Pendentes
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalPendentes">0</div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-clock fa-2x text-gray-300"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-danger shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                            Cancelados
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCancelados">0</div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-times-circle fa-2x text-gray-300"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background-color: #f6c23e;">
+                    <i class="fas fa-clock"></i>
+                    <h3 id="totalPendentes">0</h3>
+                    <p>Pendentes</p>
                 </div>
-
-                <!-- Tabela de Inscrições -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary">Lista de Inscrições</h6>
-                        <div class="dropdown no-arrow">
-                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown">
-                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive" id="tabela-container">
-                            <div id="loading">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Carregando...</span>
-                                </div>
-                            </div>
-                            <table class="table table-bordered" id="tabela-inscricoes" style="display: none;">
-                                <thead>
-                                    <tr>
-                                        <th>Nome</th>
-                                        <th>Contato</th>
-                                        <th>Quantidade</th>
-                                        <th>Preço</th>
-                                        <th>Data Inscrição</th>
-                                        <th>Comprovante</th>
-                                        <th>Status</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Os dados serão preenchidos via JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background-color: #e74a3b;">
+                    <i class="fas fa-times-circle"></i>
+                    <h3 id="totalCancelados">0</h3>
+                    <p>Cancelados</p>
                 </div>
-            </main>
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3><i class="fas fa-list"></i> Lista de Inscrições</h3>
+            <button class="btn btn-primary" id="btnAtualizar">
+                <i class="fas fa-sync-alt"></i> Atualizar Dados
+            </button>
+        </div>
+
+        <!-- Tabela de Inscrições -->
+        <div class="card">
+            <div class="card-header">
+                Inscrições
+            </div>
+            <div class="card-body">
+                <div class="table-responsive" id="tabela-container">
+                    <div id="loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                    </div>
+                    <table class="table table-striped" id="tabela-inscricoes" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Contato</th>
+                                <th>Quantidade</th>
+                                <th>Preço</th>
+                                <th>Data Inscrição</th>
+                                <th>Comprovante</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Os dados serão preenchidos via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -350,29 +277,54 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // URL do Google Apps Script (substitua pela sua URL após implantar o script)
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwIAOHo498s45Ye1JRa019x1IqKfALWh8vjAGp1L_oW9F_7PKyrxwaoiWfD4tXhEgYO/exec";
-        
         // Variáveis globais
         let inscricoes = [];
         let inscricaoEditando = null;
+        let SCRIPT_URL = localStorage.getItem('scriptUrl') || '';
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Carregar dados ao iniciar
-            carregarDados();
+            // Configurar a URL do script se já estiver salva
+            if (SCRIPT_URL) {
+                document.getElementById('scriptUrl').value = SCRIPT_URL;
+            }
             
             // Configurar event listeners
+            document.getElementById('btnSaveConfig').addEventListener('click', salvarConfiguracao);
             document.getElementById('btnAtualizar').addEventListener('click', carregarDados);
             document.getElementById('btnSalvarStatus').addEventListener('click', salvarStatus);
+            
+            // Carregar dados se a URL já estiver configurada
+            if (SCRIPT_URL) {
+                carregarDados();
+            }
         });
+
+        // Função para salvar a configuração da URL
+        function salvarConfiguracao() {
+            const url = document.getElementById('scriptUrl').value.trim();
+            if (url) {
+                SCRIPT_URL = url;
+                localStorage.setItem('scriptUrl', url);
+                alert('URL salva com sucesso!');
+                carregarDados();
+            } else {
+                alert('Por favor, insira uma URL válida.');
+            }
+        }
 
         // Função para carregar dados da planilha
         async function carregarDados() {
+            if (!SCRIPT_URL) {
+                alert('Por favor, configure a URL do Google Apps Script primeiro.');
+                return;
+            }
+            
             try {
                 document.getElementById('loading').style.display = 'flex';
                 document.getElementById('tabela-inscricoes').style.display = 'none';
                 
-                const response = await fetch(SCRIPT_URL + '?acao=ler');
+                // Adicionar timestamp para evitar cache
+                const response = await fetch(`${SCRIPT_URL}?acao=ler&timestamp=${new Date().getTime()}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -384,7 +336,7 @@
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao conectar com a planilha. Verifique o console para mais detalhes.');
+                alert('Erro ao conectar com a planilha. Verifique a URL e se o script foi implantado corretamente.');
             } finally {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('tabela-inscricoes').style.display = 'table';
@@ -396,16 +348,24 @@
             const tbody = document.querySelector('#tabela-inscricoes tbody');
             tbody.innerHTML = '';
             
+            if (dados.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="8" class="text-center">Nenhuma inscrição encontrada</td>';
+                tbody.appendChild(tr);
+                return;
+            }
+            
             dados.forEach(inscricao => {
                 const tr = document.createElement('tr');
                 
                 // Formatar data
-                const dataFormatada = new Date(inscricao.submittedat).toLocaleDateString('pt-BR');
+                const dataFormatada = inscricao.submittedat ? new Date(inscricao.submittedat).toLocaleDateString('pt-BR') : 'N/A';
                 
                 // Determinar classe do status
+                let status = inscricao.confirmado || 'Pendente';
                 let classeStatus = 'status-pendente';
-                if (inscricao.confirmado === 'Confirmado') classeStatus = 'status-confirmado';
-                if (inscricao.confirmado === 'Cancelado') classeStatus = 'status-cancelado';
+                if (status === 'Confirmado') classeStatus = 'status-confirmado';
+                if (status === 'Cancelado') classeStatus = 'status-cancelado';
                 
                 // Verificar se há comprovante
                 let comprovanteHTML = 'N/A';
@@ -414,16 +374,16 @@
                 }
                 
                 tr.innerHTML = `
-                    <td>${inscricao.nome}</td>
-                    <td>${inscricao.contato}</td>
-                    <td>${inscricao.quantidade}</td>
-                    <td>R$ ${inscricao.preco}</td>
+                    <td>${inscricao.nome || 'N/A'}</td>
+                    <td>${inscricao.contato || 'N/A'}</td>
+                    <td>${inscricao.quantidade || 'N/A'}</td>
+                    <td>${inscricao.preco ? 'R$ ' + inscricao.preco : 'N/A'}</td>
                     <td>${dataFormatada}</td>
                     <td>${comprovanteHTML}</td>
-                    <td><span class="status-badge ${classeStatus}">${inscricao.confirmado || 'Pendente'}</span></td>
+                    <td><span class="status-badge ${classeStatus}">${status}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${inscricao.id}">
-                            <i class="fas fa-edit"></i> Editar
+                        <button class="btn btn-sm btn-outline-primary btn-action btn-editar" data-id="${inscricao.id}">
+                            <i class="fas fa-edit"></i>
                         </button>
                     </td>
                 `;
@@ -453,7 +413,7 @@
             inscricaoEditando = inscricoes.find(i => i.id == id);
             
             if (inscricaoEditando) {
-                document.getElementById('nome-inscrito').textContent = inscricaoEditando.nome;
+                document.getElementById('nome-inscrito').textContent = inscricaoEditando.nome || 'N/A';
                 document.getElementById('selectStatus').value = inscricaoEditando.confirmado || 'Pendente';
                 
                 const modal = new bootstrap.Modal(document.getElementById('modalStatus'));
@@ -471,13 +431,9 @@
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: JSON.stringify({
-                        acao: 'atualizar',
-                        id: inscricaoEditando.id,
-                        status: novoStatus
-                    })
+                    body: `acao=atualizar&id=${inscricaoEditando.id}&status=${novoStatus}`
                 });
                 
                 const data = await response.json();
