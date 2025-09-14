@@ -3,104 +3,896 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Vendas</title>
+    <title>Painel Administrativo - Reservas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --primary-color: #4e73df; --secondary-color: #858796; --success-color: #1cc88a; --danger-color: #e74a3b; --warning-color: #f6c23e; }
-        body { background-color: #f8f9fc; font-family: 'Nunito', sans-serif; padding: 20px; }
-        .header { background: linear-gradient(180deg, var(--primary-color ) 10%, #224abe 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .card { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1); border: 1px solid #e3e6f0; margin-bottom: 20px; border-radius: 10px; }
-        .card-header { background-color: #f8f9fc; border-bottom: 1px solid #e3e6f0; font-weight: bold; }
-        #loading { display: flex; justify-content: center; align-items: center; height: 300px; }
-        .sortable { cursor: pointer; } .sortable:hover { color: var(--primary-color); }
-        .sortable::after { font-family: "Font Awesome 6 Free"; font-weight: 900; content: " \f0dc"; opacity: 0.4; }
-        .sortable.asc::after { content: " \f0de"; opacity: 1; } .sortable.desc::after { content: " \f0dd"; opacity: 1; }
-        .page-item.active .page-link { z-index: 1; }
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(180deg, var(--primary-color) 10%, #224abe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            border: 1px solid #e3e6f0;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: bold;
+        }
+        
+        .status-badge {
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 700;
+            border-radius: 0.35rem;
+        }
+        
+        .status-pendente {
+            color: #856404;
+            background-color: #fff3cd;
+        }
+        
+        .status-confirmado {
+            color: #155724;
+            background-color: #d4edda;
+        }
+        
+        .status-cancelado {
+            color: #721c24;
+            background-color: #f8d7da;
+        }
+        
+        #loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .stats-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .stats-card i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .stats-card h3 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .stats-card p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+        }
+        
+        .btn-action {
+            margin: 0 3px;
+        }
+        
+        .comprovante-link {
+            color: #4e73df;
+            text-decoration: none;
+        }
+        
+        .comprovante-link:hover {
+            text-decoration: underline;
+        }
+        
+        .sortable {
+            cursor: pointer;
+        }
+        
+        .sortable:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .pagination {
+            margin-bottom: 0;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .action-buttons {
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid">
         <!-- Header -->
-        <div class="header text-center"><h1><i class="fas fa-tachometer-alt"></i> Painel Administrativo</h1><p>Gerenciamento de Vendas</p></div>
+        <div class="header text-center">
+            <h1><i class="fas fa-tachometer-alt"></i> Painel Administrativo</h1>
+            <p>Gerenciamento de Reservas</p>
+        </div>
+
+        <!-- Cards de Estatísticas -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-card" style="background-color: #4e73df;">
+                    <i class="fas fa-users"></i>
+                    <h3 id="totalReservas">0</h3>
+                    <p>Total de Reservas</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background-color: #1cc88a;">
+                    <i class="fas fa-check-circle"></i>
+                    <h3 id="totalConfirmados">0</h3>
+                    <p>Confirmados</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background-color: #f6c23e;">
+                    <i class="fas fa-clock"></i>
+                    <h3 id="totalPendentes">0</h3>
+                    <p>Pendentes</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background-color: #e74a3b;">
+                    <i class="fas fa-times-circle"></i>
+                    <h3 id="totalCancelados">0</h3>
+                    <p>Cancelados</p>
+                </div>
+            </div>
+        </div>
 
         <!-- Gráficos -->
         <div class="row">
-            <div class="col-xl-8 col-lg-7"><div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line"></i> Vendas por Dia</h6></div><div class="card-body"><canvas id="graficoVendasDia"></canvas></div></div></div>
-            <div class="col-xl-4 col-lg-5"><div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie"></i> Status das Vendas</h6></div><div class="card-body"><canvas id="graficoStatus"></canvas></div></div></div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Status das Reservas
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Reservas por Data
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="dateChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Controles -->
-        <div class="card mb-4"><div class="card-body"><div class="row align-items-center"><div class="col-md-6 mb-2 mb-md-0"><div class="input-group"><span class="input-group-text"><i class="fas fa-search"></i></span><input type="text" class="form-control" id="inputPesquisa" placeholder="Pesquisar em todas as colunas..."></div></div><div class="col-md-6 text-md-end"><button class="btn btn-danger me-2" id="btnExportarPDF"><span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span><i class="fas fa-file-pdf"></i> Exportar PDF</button><button class="btn btn-primary" id="btnAtualizar"><i class="fas fa-sync-alt"></i> Atualizar Dados</button></div></div></div></div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="m-0"><i class="fas fa-list"></i> Lista de Reservas</h3>
+                <div>
+                    <button class="btn btn-success" id="btnExportPDF">
+                        <i class="fas fa-file-pdf"></i> Exportar PDF
+                    </button>
+                    <button class="btn btn-primary" id="btnAtualizar">
+                        <i class="fas fa-sync-alt"></i> Atualizar Dados
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Pesquisar em todas as colunas...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="statusFilter" class="form-select">
+                            <option value="">Todos os status</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Confirmado">Confirmado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="itemsPerPage" class="form-select">
+                            <option value="10">10 itens por página</option>
+                            <option value="25">25 itens por página</option>
+                            <option value="50">50 itens por página</option>
+                            <option value="100">100 itens por página</option>
+                        </select>
+                    </div>
+                </div>
 
-        <!-- Tabela de Vendas -->
-        <div class="card"><div class="card-header"><i class="fas fa-list"></i> Lista de Vendas</div><div class="card-body"><div class="table-responsive" id="tabela-container"><div id="loading"><div class="spinner-border text-primary" role="status"></div></div><table class="table table-striped" id="tabela-vendas" style="display: none;"><thead><tr><th class="sortable" data-column="nome">Cliente</th><th class="sortable" data-column="contato">Contato</th><th class="sortable" data-column="quantidade">Qtde</th><th class="sortable" data-column="preco">Preço</th><th class="sortable" data-column="submittedat">Data da Venda</th><th>Comprovante</th><th class="sortable" data-column="confirmado">Status</th><th>Ações</th></tr></thead><tbody></tbody></table></div><div id="paginacao-controles" class="d-flex justify-content-between align-items-center mt-3"></div></div></div>
+                <!-- Tabela de Reservas -->
+                <div class="table-responsive" id="tabela-container">
+                    <div id="loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                    </div>
+                    <table class="table table-striped" id="tabela-reservas" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="nome">Nome <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="contato">Contato <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="quantidade">Quantidade <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="preco">Preço <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="submittedat">Data Reserva <i class="fas fa-sort"></i></th>
+                                <th>Comprovante</th>
+                                <th class="sortable" data-sort="confirmado">Status <i class="fas fa-sort"></i></th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Os dados serão preenchidos via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação -->
+                <nav aria-label="Page navigation" id="paginationNav" style="display: none;">
+                    <ul class="pagination justify-content-center mt-3">
+                        <li class="page-item disabled" id="prevPage">
+                            <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#" data-page="1">1</a></li>
+                        <li class="page-item" id="nextPage">
+                            <a class="page-link" href="#">Próxima</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
     </div>
 
-    <!-- Modais -->
-    <div class="modal fade" id="modalStatus" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Alterar Status da Venda</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Alterar status de: <strong id="nome-cliente"></strong></p><select class="form-select" id="selectStatus"><option value="Pendente">Pendente</option><option value="Confirmado">Confirmado</option><option value="Cancelado">Cancelado</option></select></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-primary" id="btnSalvarStatus">Salvar</button></div></div></div></div>
-    <div class="modal fade" id="modalComprovante" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Comprovante</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><img id="comprovante-img" src="" class="img-fluid"></div></div></div></div>
-    <div class="modal fade" id="modalDeletar" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Confirmar Exclusão</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Tem certeza que deseja deletar a venda de <strong id="nome-deletar"></strong>?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-danger" id="btnConfirmarDeletar">Deletar</button></div></div></div></div>
+    <!-- Modal para Editar Status -->
+    <div class="modal fade" id="modalStatus" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Alterar Status da Reserva</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Alterar status de: <strong id="nome-inscrito"></strong></p>
+                    <div class="mb-3">
+                        <label for="selectStatus" class="form-label">Novo Status</label>
+                        <select class="form-select" id="selectStatus">
+                            <option value="Pendente">Pendente</option>
+                            <option value="Confirmado">Confirmado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnSalvarStatus">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal fade" id="modalDelete" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir a reserva de <strong id="nome-delete"></strong>?</p>
+                    <p class="text-danger">Esta ação não pode ser desfeita.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmDelete">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwamZjF1wzqIwcRZuhmvj8hjMVqd023cpHEnzSbyFRU0Yr9T-fG3HPPaRkGnE8vjUj_/exec";
-        let todasVendas = [], dadosFiltrados = [], vendaEditando = null, vendaDeletando = null;
-        let sortConfig = { column: 'submittedat', direction: 'desc' };
-        let paginacaoConfig = { currentPage: 1, itemsPerPage: 10 };
-        let graficoStatus, graficoVendasDia;
+        // URL do Google Apps Script
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5qW9Jdd9tdu-DIAasDNo1s1OiqYuexagGMABCxfAGsMOsTPrBg_6Hj7LaNKvAH7SL/exec";
         
-        function loadScript(src ) { return new Promise((resolve, reject) => { if (document.querySelector(`script[src="${src}"]`)) { return resolve(); } const script = document.createElement('script'); script.src = src; script.onload = resolve; script.onerror = () => reject(new Error(`Falha ao carregar o script: ${src}`)); document.head.appendChild(script); }); }
+        // Variáveis globais
+        let reservas = [];
+        let reservaEditando = null;
+        let reservaParaExcluir = null;
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let sortField = 'submittedat';
+        let sortDirection = 'desc';
+        let searchTerm = '';
+        let statusFilter = '';
+        let statusChart = null;
+        let dateChart = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadScript("https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" ).then(carregarDados).catch(e => console.error("Falha ao carregar Chart.js:", e));
+            // Carregar dados ao iniciar
+            carregarDados();
+            
+            // Configurar event listeners
             document.getElementById('btnAtualizar').addEventListener('click', carregarDados);
             document.getElementById('btnSalvarStatus').addEventListener('click', salvarStatus);
-            document.getElementById('btnConfirmarDeletar').addEventListener('click', deletarVenda);
-            document.getElementById('inputPesquisa').addEventListener('input', () => { paginacaoConfig.currentPage = 1; filtrarDados(); });
-            document.getElementById('btnExportarPDF').addEventListener('click', exportarPDF);
-            document.querySelectorAll('.sortable').forEach(header => { header.addEventListener('click', () => { const column = header.getAttribute('data-column'); sortConfig.direction = (sortConfig.column === column && sortConfig.direction === 'asc') ? 'desc' : 'asc'; sortConfig.column = column; ordenarEExibir(); }); });
+            document.getElementById('btnConfirmDelete').addEventListener('click', confirmarExclusao);
+            document.getElementById('btnExportPDF').addEventListener('click', exportarPDF);
+            
+            // Configurar eventos de ordenação
+            document.querySelectorAll('.sortable').forEach(header => {
+                header.addEventListener('click', function() {
+                    const field = this.getAttribute('data-sort');
+                    ordenarTabela(field);
+                });
+            });
+            
+            // Configurar pesquisa
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                searchTerm = e.target.value.toLowerCase();
+                currentPage = 1;
+                exibirDados(filtrarDados());
+            });
+            
+            // Configurar filtro de status
+            document.getElementById('statusFilter').addEventListener('change', function(e) {
+                statusFilter = e.target.value;
+                currentPage = 1;
+                exibirDados(filtrarDados());
+            });
+            
+            // Configurar itens por página
+            document.getElementById('itemsPerPage').addEventListener('change', function(e) {
+                itemsPerPage = parseInt(e.target.value);
+                currentPage = 1;
+                exibirDados(filtrarDados());
+            });
         });
 
-        async function carregarDados() { document.getElementById('loading').style.display = 'flex'; document.getElementById('tabela-vendas').style.display = 'none'; try { const response = await fetch(`${SCRIPT_URL}?acao=ler&timestamp=${new Date().getTime()}`); const data = await response.json(); if (data.success) { todasVendas = data.inscricoes; filtrarDados(); if (window.Chart) criarGraficos(todasVendas); } else { alert('Erro ao carregar dados: ' + data.message); } } catch (error) { console.error('Erro:', error); alert('Erro ao conectar com a planilha.'); } finally { document.getElementById('loading').style.display = 'none'; document.getElementById('tabela-vendas').style.display = 'table'; } }
-        function filtrarDados() { const termo = document.getElementById('inputPesquisa').value.toLowerCase(); dadosFiltrados = !termo ? [...todasVendas] : todasVendas.filter(venda => Object.values(venda).some(val => String(val).toLowerCase().includes(termo))); ordenarEExibir(); }
-        function ordenarEExibir() { const { column, direction } = sortConfig; dadosFiltrados.sort((a, b) => { let valA = a[column] || '', valB = b[column] || ''; if (['preco', 'quantidade'].includes(column)) { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; } else if (column === 'submittedat') { valA = new Date(valA).getTime() || 0; valB = new Date(valB).getTime() || 0; } else { valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase(); } if (valA < valB) return direction === 'asc' ? -1 : 1; if (valA > valB) return direction === 'asc' ? 1 : -1; return 0; }); document.querySelectorAll('.sortable').forEach(h => { h.classList.remove('asc', 'desc'); if (h.getAttribute('data-column') === column) h.classList.add(direction); }); exibirDadosPaginados(); }
-        function exibirDadosPaginados() { const { currentPage, itemsPerPage } = paginacaoConfig; const start = (currentPage - 1) * itemsPerPage; const end = start + itemsPerPage; exibirDadosNaTabela(dadosFiltrados.slice(start, end)); atualizarControlesPaginacao(); }
-        function exibirDadosNaTabela(dados) { const tbody = document.querySelector('#tabela-vendas tbody'); tbody.innerHTML = dados.length === 0 ? '<tr><td colspan="8" class="text-center">Nenhuma venda encontrada</td></tr>' : ''; dados.forEach(venda => { const tr = document.createElement('tr'); const dataFormatada = venda.submittedat ? new Date(venda.submittedat).toLocaleDateString('pt-BR') : 'N/A'; let status = venda.confirmado || 'Pendente'; let comprovanteHTML = 'N/A'; if (venda.comprovante) { if (venda.comprovante.toLowerCase().includes('.pdf') || venda.comprovante.includes('drive.google.com')) { comprovanteHTML = `<a href="${venda.comprovante}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-alt"></i> Ver</a>`; } else { comprovanteHTML = `<img src="${venda.comprovante}" style="max-width:60px; cursor:pointer;" data-bs-toggle="modal" data-bs-target="#modalComprovante" onclick="document.getElementById('comprovante-img').src='${venda.comprovante}'">`; } } tr.innerHTML = `<td>${venda.nome||'N/A'}</td><td>${venda.contato||'N/A'}</td><td>${venda.quantidade||'N/A'}</td><td>${venda.preco?'R$ '+parseFloat(venda.preco).toFixed(2):'N/A'}</td><td>${dataFormatada}</td><td>${comprovanteHTML}</td><td><span class="badge bg-${status.toLowerCase()=='confirmado'?'success':status.toLowerCase()=='cancelado'?'danger':'warning'} text-dark">${status}</span></td><td><button class="btn btn-sm btn-outline-primary" onclick="abrirModalEditar('${venda.id}')"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="abrirModalDeletar('${venda.id}')"><i class="fas fa-trash"></i></button></td>`; tbody.appendChild(tr); }); }
-        function atualizarControlesPaginacao() { const { currentPage, itemsPerPage } = paginacaoConfig; const totalPages = Math.ceil(dadosFiltrados.length / itemsPerPage); const container = document.getElementById('paginacao-controles'); container.innerHTML = `<span class="text-muted">Exibindo ${dadosFiltrados.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} a ${Math.min(currentPage * itemsPerPage, dadosFiltrados.length)} de ${dadosFiltrados.length}</span><ul class="pagination mb-0"></ul>`; if (totalPages <= 1) return; const ul = container.querySelector('.pagination'); const createPageItem = (page, text, disabled = false, active = false) => `<li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}"><a class="page-link" href="#" data-page="${page}">${text}</a></li>`; ul.innerHTML += createPageItem(currentPage - 1, 'Anterior', currentPage === 1); let startPage = Math.max(1, currentPage - 2), endPage = Math.min(totalPages, currentPage + 2); if (currentPage <= 3) endPage = Math.min(5, totalPages); if (currentPage > totalPages - 3) startPage = Math.max(1, totalPages - 4); if (startPage > 1) ul.innerHTML += createPageItem(1, '1'); if (startPage > 2) ul.innerHTML += createPageItem(0, '...', true); for (let i = startPage; i <= endPage; i++) ul.innerHTML += createPageItem(i, i, false, i === currentPage); if (endPage < totalPages - 1) ul.innerHTML += createPageItem(0, '...', true); if (endPage < totalPages) ul.innerHTML += createPageItem(totalPages, totalPages); ul.innerHTML += createPageItem(currentPage + 1, 'Próximo', currentPage === totalPages); ul.querySelectorAll('a.page-link').forEach(link => link.addEventListener('click', e => { e.preventDefault(); const page = parseInt(e.target.getAttribute('data-page')); if (page) { paginacaoConfig.currentPage = page; exibirDadosPaginados(); } })); }
-        function criarGraficos(dados) { const ctxStatus = document.getElementById('graficoStatus').getContext('2d'); const ctxVendas = document.getElementById('graficoVendasDia').getContext('2d'); const statusCounts = dados.reduce((acc, i) => { const status = i.confirmado || 'Pendente'; acc[status] = (acc[status] || 0) + 1; return acc; }, {}); if (graficoStatus) graficoStatus.destroy(); graficoStatus = new Chart(ctxStatus, { type: 'doughnut', data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#f6c23e', '#1cc88a', '#e74a3b'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } } }); const vendasPorDia = dados.reduce((acc, i) => { const data = new Date(i.submittedat).toLocaleDateString('pt-BR'); acc[data] = (acc[data] || 0) + 1; return acc; }, {}); const sortedDates = Object.keys(vendasPorDia).sort((a, b) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-'))); const sortedCounts = sortedDates.map(date => vendasPorDia[date]); if (graficoVendasDia) graficoVendasDia.destroy(); graficoVendasDia = new Chart(ctxVendas, { type: 'line', data: { labels: sortedDates, datasets: [{ label: "Vendas", data: sortedCounts, borderColor: 'rgba(78, 115, 223, 1)', backgroundColor: 'rgba(78, 115, 223, 0.05)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } }); }
-
-        async function exportarPDF() {
-            if (dadosFiltrados.length === 0) { alert("Não há dados para exportar."); return; }
-            const btn = document.getElementById('btnExportarPDF'), spinner = btn.querySelector('.spinner-border'), icon = btn.querySelector('.fa-file-pdf');
-            spinner.classList.remove('d-none'); icon.classList.add('d-none'); btn.disabled = true;
-
+        // Função para carregar dados da planilha
+        async function carregarDados() {
             try {
-                await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" );
-                // --- LINHA CORRIGIDA ---
-                await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf-autotable.min.js" );
-
-                const doc = new window.jspdf.jsPDF();
-                doc.setFontSize(18); doc.text("Relatório de Vendas", 14, 22);
-                doc.setFontSize(11); doc.setTextColor(100);
-                doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
-                doc.text(`Total de vendas no filtro: ${dadosFiltrados.length}`, 14, 35);
-                const head = [['Cliente', 'Contato', 'Qtde', 'Preço', 'Data da Venda', 'Status']];
-                const body = dadosFiltrados.map(venda => [ venda.nome || 'N/A', venda.contato || 'N/A', venda.quantidade || 'N/A', venda.preco ? `R$ ${parseFloat(venda.preco).toFixed(2)}` : 'N/A', venda.submittedat ? new Date(venda.submittedat).toLocaleDateString('pt-BR') : 'N/A', venda.confirmado || 'Pendente' ]);
-                doc.autoTable({ head: head, body: body, startY: 40, theme: 'striped', headStyles: { fillColor: [78, 115, 223], textColor: [255, 255, 255] }, styles: { font: 'helvetica', fontSize: 9 } });
-                doc.save('relatorio_vendas.pdf');
+                document.getElementById('loading').style.display = 'flex';
+                document.getElementById('tabela-reservas').style.display = 'none';
+                document.getElementById('paginationNav').style.display = 'none';
+                
+                // Adicionar timestamp para evitar cache
+                const response = await fetch(`${SCRIPT_URL}?acao=ler&timestamp=${new Date().getTime()}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    reservas = data.reservas;
+                    exibirDados(filtrarDados());
+                    atualizarEstatisticas(reservas);
+                    atualizarGraficos(reservas);
+                } else {
+                    alert('Erro ao carregar dados: ' + data.message);
+                }
             } catch (error) {
-                console.error("Falha ao gerar PDF:", error);
-                alert("Ocorreu um erro ao gerar o PDF. Por favor, tente novamente. Se o erro persistir, verifique o console.");
+                console.error('Erro:', error);
+                alert('Erro ao conectar com a planilha. Verifique se o script foi implantado corretamente.');
             } finally {
-                spinner.classList.add('d-none'); icon.classList.remove('d-none'); btn.disabled = false;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('tabela-reservas').style.display = 'table';
             }
         }
 
-        function abrirModalEditar(id) { vendaEditando = todasVendas.find(v => v.id == id); if(vendaEditando){ document.getElementById('nome-cliente').textContent = vendaEditando.nome || 'N/A'; document.getElementById('selectStatus').value = vendaEditando.confirmado || 'Pendente'; new bootstrap.Modal(document.getElementById('modalStatus')).show(); } }
-        function abrirModalDeletar(id) { vendaDeletando = todasVendas.find(v => v.id == id); if(vendaDeletando){ document.getElementById('nome-deletar').textContent = vendaDeletando.nome || 'N/A'; new bootstrap.Modal(document.getElementById('modalDeletar')).show(); } }
-        async function salvarStatus() { if (!vendaEditando) return; const novoStatus = document.getElementById('selectStatus').value; try { const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `acao=atualizar&id=${vendaEditando.id}&status=${novoStatus}` }); const data = await res.json(); if (data.success) { alert('Status atualizado!'); bootstrap.Modal.getInstance(document.getElementById('modalStatus')).hide(); carregarDados(); } else { alert('Erro: ' + data.message); } } catch (e) { alert('Erro de conexão.'); } }
-        async function deletarVenda() { if (!vendaDeletando) return; try { const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `acao=deletar&id=${vendaDeletando.id}` }); const data = await res.json(); if (data.success) { alert('Venda deletada!'); bootstrap.Modal.getInstance(document.getElementById('modalDeletar')).hide(); carregarDados(); } else { alert('Erro: ' + data.message); } } catch (e) { alert('Erro de conexão.'); } }
+        // Função para filtrar dados com base na pesquisa e filtros
+        function filtrarDados() {
+            let dadosFiltrados = reservas;
+            
+            // Aplicar filtro de pesquisa
+            if (searchTerm) {
+                dadosFiltrados = dadosFiltrados.filter(reserva => {
+                    return (
+                        (reserva.nome && reserva.nome.toLowerCase().includes(searchTerm)) ||
+                        (reserva.contato && reserva.contato.toLowerCase().includes(searchTerm)) ||
+                        (reserva.quantidade && reserva.quantidade.toString().includes(searchTerm)) ||
+                        (reserva.preco && reserva.preco.toString().includes(searchTerm)) ||
+                        (reserva.submittedat && new Date(reserva.submittedat).toLocaleDateString('pt-BR').includes(searchTerm)) ||
+                        (reserva.confirmado && reserva.confirmado.toLowerCase().includes(searchTerm))
+                    );
+                });
+            }
+            
+            // Aplicar filtro de status
+            if (statusFilter) {
+                dadosFiltrados = dadosFiltrados.filter(reserva => reserva.confirmado === statusFilter);
+            }
+            
+            // Ordenar dados
+            dadosFiltrados.sort((a, b) => {
+                let valueA = a[sortField] || '';
+                let valueB = b[sortField] || '';
+                
+                // Converter para número se for quantidade ou preço
+                if (sortField === 'quantidade' || sortField === 'preco') {
+                    valueA = parseFloat(valueA) || 0;
+                    valueB = parseFloat(valueB) || 0;
+                }
+                
+                // Converter para data se for o campo de data
+                if (sortField === 'submittedat') {
+                    valueA = new Date(valueA).getTime();
+                    valueB = new Date(valueB).getTime();
+                }
+                
+                // Comparar strings em minúsculas
+                if (typeof valueA === 'string' && typeof valueB === 'string') {
+                    valueA = valueA.toLowerCase();
+                    valueB = valueB.toLowerCase();
+                }
+                
+                if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+                if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            return dadosFiltrados;
+        }
+
+        // Função para exibir dados na tabela
+        function exibirDados(dados) {
+            const tbody = document.querySelector('#tabela-reservas tbody');
+            tbody.innerHTML = '';
+            
+            if (dados.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="8" class="text-center">Nenhuma reserva encontrada</td>';
+                tbody.appendChild(tr);
+                document.getElementById('paginationNav').style.display = 'none';
+                return;
+            }
+            
+            // Calcular paginação
+            const totalPages = Math.ceil(dados.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, dados.length);
+            const pageData = dados.slice(startIndex, endIndex);
+            
+            pageData.forEach(reserva => {
+                const tr = document.createElement('tr');
+                
+                // Formatar data
+                const dataFormatada = reserva.submittedat ? new Date(reserva.submittedat).toLocaleDateString('pt-BR') : 'N/A';
+                
+                // Determinar classe do status
+                let status = reserva.confirmado || 'Pendente';
+                let classeStatus = 'status-pendente';
+                if (status === 'Confirmado') classeStatus = 'status-confirmado';
+                if (status === 'Cancelado') classeStatus = 'status-cancelado';
+                
+                // Verificar se há comprovante
+                let comprovanteHTML = 'N/A';
+                if (reserva.comprovante) {
+                    comprovanteHTML = `<a href="${reserva.comprovante}" class="comprovante-link" target="_blank">Ver Comprovante</a>`;
+                }
+                
+                // Exibir os dados
+                tr.innerHTML = `
+                    <td>${reserva.nome || 'Nome não informado'}</td>
+                    <td>${reserva.contato || 'N/A'}</td>
+                    <td>${reserva.quantidade || 'N/A'}</td>
+                    <td>${reserva.preco ? 'R$ ' + reserva.preco : 'N/A'}</td>
+                    <td>${dataFormatada}</td>
+                    <td>${comprovanteHTML}</td>
+                    <td><span class="status-badge ${classeStatus}">${status}</span></td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-outline-primary btn-action btn-editar" data-id="${reserva.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-action btn-excluir" data-id="${reserva.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+            
+            // Adicionar event listeners aos botões de editar e excluir
+            document.querySelectorAll('.btn-editar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    abrirModalEditar(id);
+                });
+            });
+            
+            document.querySelectorAll('.btn-excluir').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    abrirModalExcluir(id);
+                });
+            });
+            
+            // Atualizar paginação
+            atualizarPaginacao(totalPages);
+        }
+
+        // Função para atualizar a paginação
+        function atualizarPaginacao(totalPages) {
+            const paginationNav = document.getElementById('paginationNav');
+            const paginationList = paginationNav.querySelector('.pagination');
+            
+            // Limpar itens de página existentes (exceto anterior e próxima)
+            while (paginationList.children.length > 2) {
+                paginationList.removeChild(paginationList.lastChild);
+            }
+            
+            // Adicionar botão anterior
+            const prevPage = paginationList.firstElementChild;
+            if (currentPage === 1) {
+                prevPage.classList.add('disabled');
+            } else {
+                prevPage.classList.remove('disabled');
+            }
+            
+            // Adicionar números de página
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, startPage + 4);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageItem = document.createElement('li');
+                pageItem.classList.add('page-item');
+                if (i === currentPage) {
+                    pageItem.classList.add('active');
+                }
+                
+                const pageLink = document.createElement('a');
+                pageLink.classList.add('page-link');
+                pageLink.href = '#';
+                pageLink.textContent = i;
+                pageLink.setAttribute('data-page', i);
+                
+                pageLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    currentPage = parseInt(this.getAttribute('data-page'));
+                    exibirDados(filtrarDados());
+                });
+                
+                pageItem.appendChild(pageLink);
+                paginationList.insertBefore(pageItem, paginationList.lastElementChild);
+            }
+            
+            // Adicionar botão próxima
+            const nextPage = paginationList.lastElementChild;
+            if (currentPage === totalPages) {
+                nextPage.classList.add('disabled');
+            } else {
+                nextPage.classList.remove('disabled');
+            }
+            
+            // Mostrar navegação de paginação
+            paginationNav.style.display = totalPages > 1 ? 'block' : 'none';
+        }
+
+        // Função para ordenar a tabela
+        function ordenarTabela(field) {
+            // Alternar direção se for o mesmo campo
+            if (sortField === field) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortDirection = 'asc';
+            }
+            
+            // Atualizar ícones de ordenação
+            document.querySelectorAll('.sortable i').forEach(icon => {
+                icon.className = 'fas fa-sort';
+            });
+            
+            const currentHeader = document.querySelector(`.sortable[data-sort="${sortField}"]`);
+            if (currentHeader) {
+                currentHeader.querySelector('i').className = `fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'}`;
+            }
+            
+            // Reexibir dados ordenados
+            exibirDados(filtrarDados());
+        }
+
+        // Função para atualizar estatísticas
+        function atualizarEstatisticas(dados) {
+            document.getElementById('totalReservas').textContent = dados.length;
+            document.getElementById('totalConfirmados').textContent = dados.filter(i => i.confirmado === 'Confirmado').length;
+            document.getElementById('totalPendentes').textContent = dados.filter(i => !i.confirmado || i.confirmado === 'Pendente').length;
+            document.getElementById('totalCancelados').textContent = dados.filter(i => i.confirmado === 'Cancelado').length;
+        }
+
+        // Função para atualizar gráficos
+        function atualizarGraficos(dados) {
+            // Dados para gráfico de status
+            const statusData = {
+                'Confirmado': dados.filter(i => i.confirmado === 'Confirmado').length,
+                'Pendente': dados.filter(i => !i.confirmado || i.confirmado === 'Pendente').length,
+                'Cancelado': dados.filter(i => i.confirmado === 'Cancelado').length
+            };
+            
+            // Destruir gráficos existentes
+            if (statusChart) {
+                statusChart.destroy();
+            }
+            
+            // Criar gráfico de status
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusData),
+                    datasets: [{
+                        data: Object.values(statusData),
+                        backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b'],
+                        hoverBackgroundColor: ['#17a673', '#dda20a', '#be2617'],
+                        hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Dados para gráfico de datas (agrupar por data)
+            const dateCounts = {};
+            dados.forEach(reserva => {
+                if (reserva.submittedat) {
+                    const date = new Date(reserva.submittedat).toLocaleDateString('pt-BR');
+                    dateCounts[date] = (dateCounts[date] || 0) + 1;
+                }
+            });
+            
+            const sortedDates = Object.keys(dateCounts).sort((a, b) => {
+                return new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-'));
+            });
+            
+            const dateValues = sortedDates.map(date => dateCounts[date]);
+            
+            // Destruir gráfico de datas existente
+            if (dateChart) {
+                dateChart.destroy();
+            }
+            
+            // Criar gráfico de datas
+            const dateCtx = document.getElementById('dateChart').getContext('2d');
+            dateChart = new Chart(dateCtx, {
+                type: 'bar',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: 'Reservas por Data',
+                        data: dateValues,
+                        backgroundColor: '#4e73df',
+                        hoverBackgroundColor: '#2e59d9',
+                        hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para abrir modal de edição
+        function abrirModalEditar(id) {
+            reservaEditando = reservas.find(i => i.id == id);
+            
+            if (reservaEditando) {
+                document.getElementById('nome-inscrito').textContent = reservaEditando.nome || 'Nome não informado';
+                document.getElementById('selectStatus').value = reservaEditando.confirmado || 'Pendente';
+                
+                const modal = new bootstrap.Modal(document.getElementById('modalStatus'));
+                modal.show();
+            }
+        }
+
+        // Função para abrir modal de exclusão
+        function abrirModalExcluir(id) {
+            reservaParaExcluir = reservas.find(i => i.id == id);
+            
+            if (reservaParaExcluir) {
+                document.getElementById('nome-delete').textContent = reservaParaExcluir.nome || 'Nome não informado';
+                
+                const modal = new bootstrap.Modal(document.getElementById('modalDelete'));
+                modal.show();
+            }
+        }
+
+        // Função para salvar alterações de status
+        async function salvarStatus() {
+            if (!reservaEditando) return;
+            
+            const novoStatus = document.getElementById('selectStatus').value;
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `acao=atualizar&id=${reservaEditando.id}&status=${novoStatus}`
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Status atualizado com sucesso!');
+                    // Fechar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalStatus'));
+                    modal.hide();
+                    // Recarregar dados
+                    carregarDados();
+                } else {
+                    alert('Erro ao atualizar status: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao conectar com a planilha.');
+            }
+        }
+
+        // Função para confirmar exclusão
+        async function confirmarExclusao() {
+            if (!reservaParaExcluir) return;
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `acao=excluir&id=${reservaParaExcluir.id}`
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Reserva excluída com sucesso!');
+                    // Fechar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalDelete'));
+                    modal.hide();
+                    // Recarregar dados
+                    carregarDados();
+                } else {
+                    alert('Erro ao excluir reserva: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao conectar com a planilha.');
+            }
+        }
+
+        // Função para exportar PDF
+        async function exportarPDF() {
+            try {
+                // Mostrar loading
+                const originalContent = document.body.innerHTML;
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.style = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10000; background:rgba(255,255,255,0.9); padding:20px; border-radius:5px;';
+                loadingIndicator.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Gerando PDF...</span></div><p class="mt-2">Gerando PDF...</p>';
+                document.body.appendChild(loadingIndicator);
+                
+                // Usar html2canvas para capturar a tabela
+                const tabela = document.getElementById('tabela-reservas');
+                
+                // Criar um clone da tabela para o PDF
+                const tabelaClone = tabela.cloneNode(true);
+                
+                // Remover coluna de ações do clone
+                const acoesHeader = tabelaClone.rows[0].cells[7];
+                acoesHeader.parentNode.removeChild(acoesHeader);
+                
+                Array.from(tabelaClone.rows).forEach(row => {
+                    if (row.cells.length > 7) {
+                        row.deleteCell(7);
+                    }
+                });
+                
+                // Adicionar título e data ao PDF
+                const printContent = document.createElement('div');
+                printContent.innerHTML = `
+                    <h2 class="text-center">Relatório de Reservas</h2>
+                    <p class="text-center">Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+                    <p class="text-center">Total de reservas: ${document.getElementById('totalReservas').textContent} | 
+                    Confirmadas: ${document.getElementById('totalConfirmados').textContent} | 
+                    Pendentes: ${document.getElementById('totalPendentes').textContent} | 
+                    Canceladas: ${document.getElementById('totalCancelados').textContent}</p>
+                `;
+                printContent.appendChild(tabelaClone);
+                
+                // Usar html2canvas para converter em imagem
+                const canvas = await html2canvas(printContent, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                });
+                
+                // Remover loading
+                document.body.removeChild(loadingIndicator);
+                
+                // Criar PDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 210; // Largura A4 em mm
+                const pageHeight = 297; // Altura A4 em mm
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                // Adicionar páginas adicionais se necessário
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                // Salvar PDF
+                doc.save(`reservas_${new Date().toISOString().slice(0, 10)}.pdf`);
+                
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                alert('Erro ao gerar PDF. Verifique o console para mais detalhes.');
+            }
+        }
     </script>
 </body>
 </html>
