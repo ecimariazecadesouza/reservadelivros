@@ -9,62 +9,185 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root {
             --primary-color: #4e73df;
+            --primary-light: #7a9ef5;
+            --primary-dark: #375abd;
             --secondary-color: #858796;
             --success-color: #1cc88a;
-            --danger-color: #e74a3b;
+            --success-light: #4adfa8;
             --warning-color: #f6c23e;
+            --warning-light: #f9d371;
+            --danger-color: #e74a3b;
+            --danger-light: #ee7a6f;
+            --light-bg: #f8f9fc;
+            --dark-text: #5a5c69;
+            --border-radius: 12px;
+            --box-shadow: 0 0.3rem 1.2rem rgba(58, 59, 69, 0.15);
+            --transition: all 0.3s ease;
         }
         
         body {
-            background-color: #f8f9fc;
+            background-color: var(--light-bg);
             font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
             padding: 20px;
+            color: var(--dark-text);
         }
         
         .header {
-            background: linear-gradient(180deg, var(--primary-color) 10%, #224abe 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+        }
+        
+        .header h1 {
+            font-weight: 700;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
         }
         
         .card {
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
-            border: 1px solid #e3e6f0;
-            margin-bottom: 20px;
-            border-radius: 10px;
+            box-shadow: var(--box-shadow);
+            border: none;
+            margin-bottom: 25px;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(58, 59, 69, 0.2);
         }
         
         .card-header {
-            background-color: #f8f9fc;
+            background-color: white;
             border-bottom: 1px solid #e3e6f0;
-            font-weight: bold;
+            font-weight: 700;
+            padding: 15px 20px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+        }
+        
+        .stats-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            color: white;
+            margin-bottom: 25px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-card::after {
+            content: "";
+            position: absolute;
+            top: -20%;
+            right: -20%;
+            width: 60%;
+            height: 140%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(30deg);
+        }
+        
+        .stats-card i {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stats-card h3 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stats-card p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .card-total {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        }
+        
+        .card-confirmado {
+            background: linear-gradient(135deg, var(--success-color) 0%, #17a673 100%);
+        }
+        
+        .card-pendente {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #dda20a 100%);
+        }
+        
+        .card-cancelado {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #be2617 100%);
         }
         
         .status-badge {
-            padding: 0.35em 0.65em;
+            padding: 0.4em 0.8em;
             font-size: 0.75em;
             font-weight: 700;
             border-radius: 0.35rem;
+            display: inline-block;
+            min-width: 90px;
+            text-align: center;
         }
         
         .status-pendente {
             color: #856404;
             background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
         }
         
         .status-confirmado {
             color: #155724;
             background-color: #d4edda;
+            border: 1px solid #c3e6cb;
         }
         
         .status-cancelado {
             color: #721c24;
             background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
         }
         
         #loading {
@@ -72,59 +195,67 @@
             justify-content: center;
             align-items: center;
             height: 300px;
+            flex-direction: column;
         }
         
         .spinner-border {
             width: 3rem;
             height: 3rem;
-        }
-        
-        .stats-card {
-            text-align: center;
-            padding: 15px;
-            border-radius: 8px;
-            color: white;
-            margin-bottom: 20px;
-        }
-        
-        .stats-card i {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-        
-        .stats-card h3 {
-            margin: 0;
-            font-size: 1.8rem;
-        }
-        
-        .stats-card p {
-            margin: 5px 0 0;
-            font-size: 0.9rem;
+            margin-bottom: 15px;
         }
         
         .btn-action {
             margin: 0 3px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        .btn-action:hover {
+            transform: scale(1.1);
         }
         
         .comprovante-link {
-            color: #4e73df;
+            color: var(--primary-color);
             text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
         }
         
         .comprovante-link:hover {
+            color: var(--primary-dark);
             text-decoration: underline;
         }
         
         .sortable {
             cursor: pointer;
+            transition: var(--transition);
+            position: relative;
         }
         
         .sortable:hover {
-            background-color: #f8f9fa;
+            background-color: rgba(78, 115, 223, 0.05);
         }
         
         .pagination {
             margin-bottom: 0;
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .page-link {
+            color: var(--primary-color);
+        }
+        
+        .page-link:hover {
+            color: var(--primary-dark);
         }
         
         .chart-container {
@@ -142,41 +273,175 @@
             left: -9999px;
             top: -9999px;
         }
+        
+        .filter-section {
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: 0 0.15rem 0.75rem rgba(58, 59, 69, 0.1);
+        }
+        
+        .table-responsive {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .table th {
+            background-color: #f8f9fc;
+            font-weight: 700;
+            padding: 12px 15px;
+        }
+        
+        .table td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+        
+        .badge-filter {
+            cursor: pointer;
+            margin: 0 5px 5px 0;
+        }
+        
+        .view-options {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .view-option-btn {
+            padding: 8px 15px;
+            background: #f8f9fc;
+            border: 1px solid #e3e6f0;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .view-option-btn:first-child {
+            border-radius: 5px 0 0 5px;
+        }
+        
+        .view-option-btn:last-child {
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .view-option-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* Cards View */
+        .cards-container {
+            display: none;
+            margin-bottom: 20px;
+        }
+        
+        .reserva-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 0.15rem 0.75rem rgba(58, 59, 69, 0.1);
+            transition: var(--transition);
+        }
+        
+        .reserva-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(58, 59, 69, 0.15);
+        }
+        
+        .card-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .card-label {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+        
+        .btn-toggle-filters {
+            margin-bottom: 15px;
+        }
+        
+        .advanced-filters {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: 0 0.15rem 0.75rem rgba(58, 59, 69, 0.1);
+            display: none;
+        }
+        
+        .filter-group {
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px;
+            }
+            
+            .stats-card {
+                margin-bottom: 15px;
+            }
+            
+            .table-responsive {
+                overflow-x: auto;
+            }
+            
+            .action-buttons {
+                white-space: normal;
+            }
+            
+            .btn-action {
+                margin-bottom: 5px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid">
         <!-- Header -->
         <div class="header text-center">
-            <h1><i class="fas fa-tachometer-alt"></i> Painel Administrativo</h1>
+            <h1><i class="fas fa-calendar-check"></i> Painel Administrativo</h1>
             <p>Gerenciamento de Reservas</p>
         </div>
 
         <!-- Cards de Estatísticas -->
         <div class="row">
-            <div class="col-md-3">
-                <div class="stats-card" style="background-color: #4e73df;">
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card card-total">
                     <i class="fas fa-users"></i>
                     <h3 id="totalReservas">0</h3>
                     <p>Total de Reservas</p>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" style="background-color: #1cc88a;">
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card card-confirmado">
                     <i class="fas fa-check-circle"></i>
                     <h3 id="totalConfirmados">0</h3>
                     <p>Confirmados</p>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" style="background-color: #f6c23e;">
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card card-pendente">
                     <i class="fas fa-clock"></i>
                     <h3 id="totalPendentes">0</h3>
                     <p>Pendentes</p>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" style="background-color: #e74a3b;">
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card card-cancelado">
                     <i class="fas fa-times-circle"></i>
                     <h3 id="totalCancelados">0</h3>
                     <p>Cancelados</p>
@@ -186,10 +451,10 @@
 
         <!-- Gráficos -->
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header">
-                        Status das Reservas
+                        <i class="fas fa-chart-pie me-2"></i>Status das Reservas
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
@@ -198,10 +463,10 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header">
-                        Reservas por Data
+                        <i class="fas fa-chart-bar me-2"></i>Reservas por Data
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
@@ -215,19 +480,68 @@
         <!-- Controles -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="m-0"><i class="fas fa-list"></i> Lista de Reservas</h3>
+                <h3 class="m-0"><i class="fas fa-list me-2"></i>Lista de Reservas</h3>
                 <div>
-                    <button class="btn btn-success" id="btnExportPDF">
-                        <i class="fas fa-file-pdf"></i> Exportar PDF
-                    </button>
+                    <div class="btn-group me-2">
+                        <button class="btn btn-success" id="btnExportPDF">
+                            <i class="fas fa-file-pdf me-1"></i> PDF
+                        </button>
+                        <button class="btn btn-info" id="btnExportCSV">
+                            <i class="fas fa-file-csv me-1"></i> CSV
+                        </button>
+                    </div>
                     <button class="btn btn-primary" id="btnAtualizar">
-                        <i class="fas fa-sync-alt"></i> Atualizar Dados
+                        <i class="fas fa-sync-alt me-1"></i> Atualizar
                     </button>
                 </div>
             </div>
             <div class="card-body">
+                <!-- Filtros Avançados -->
+                <button class="btn btn-outline-secondary btn-toggle-filters">
+                    <i class="fas fa-filter me-1"></i> Filtros Avançados
+                </button>
+                
+                <div class="advanced-filters">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="filter-group">
+                                <label class="form-label">Data Início</label>
+                                <input type="date" id="dataInicioFilter" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="filter-group">
+                                <label class="form-label">Data Fim</label>
+                                <input type="date" id="dataFimFilter" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="filter-group">
+                                <label class="form-label">Valor Mínimo</label>
+                                <input type="number" id="valorMinFilter" class="form-control" placeholder="R$ 0,00">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="filter-group">
+                                <label class="form-label">Valor Máximo</label>
+                                <input type="number" id="valorMaxFilter" class="form-control" placeholder="R$ 0,00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <button class="btn btn-sm btn-primary" id="btnAplicarFiltros">
+                                <i class="fas fa-check me-1"></i> Aplicar Filtros
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="btnLimparFiltros">
+                                <i class="fas fa-times me-1"></i> Limpar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                             <input type="text" id="searchInput" class="form-control" placeholder="Pesquisar em todas as colunas...">
@@ -241,14 +555,33 @@
                             <option value="Cancelado">Cancelado</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select id="itemsPerPage" class="form-select">
-                            <option value="10">10 itens por página</option>
-                            <option value="25">25 itens por página</option>
-                            <option value="50">50 itens por página</option>
-                            <option value="100">100 itens por página</option>
+                            <option value="10">10 itens</option>
+                            <option value="25">25 itens</option>
+                            <option value="50">50 itens</option>
+                            <option value="100">100 itens</option>
                         </select>
                     </div>
+                    <div class="col-md-2">
+                        <div class="view-options">
+                            <div class="view-option-btn active" data-view="table">
+                                <i class="fas fa-table"></i>
+                            </div>
+                            <div class="view-option-btn" data-view="cards">
+                                <i class="fas fa-th-large"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filtros Rápidos -->
+                <div class="d-flex flex-wrap mb-3">
+                    <span class="me-2 align-self-center"><small>Filtro rápido:</small></span>
+                    <span class="badge bg-primary badge-filter" data-status="">Todos</span>
+                    <span class="badge bg-warning text-dark badge-filter" data-status="Pendente">Pendentes</span>
+                    <span class="badge bg-success badge-filter" data-status="Confirmado">Confirmados</span>
+                    <span class="badge bg-danger badge-filter" data-status="Cancelado">Cancelados</span>
                 </div>
 
                 <!-- Tabela de Reservas -->
@@ -257,8 +590,9 @@
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Carregando...</span>
                         </div>
+                        <p>Carregando reservas...</p>
                     </div>
-                    <table class="table table-striped" id="tabela-reservas" style="display: none;">
+                    <table class="table table-hover" id="tabela-reservas" style="display: none;">
                         <thead>
                             <tr>
                                 <th class="sortable" data-sort="nome">Nome <i class="fas fa-sort"></i></th>
@@ -275,6 +609,11 @@
                             <!-- Os dados serão preenchidos via JavaScript -->
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Visualização em Cards -->
+                <div class="cards-container" id="cards-container">
+                    <!-- Os cards serão preenchidos via JavaScript -->
                 </div>
 
                 <!-- Paginação -->
@@ -295,6 +634,24 @@
 
     <!-- Container oculto para exportação PDF -->
     <div id="pdfExportContainer"></div>
+
+    <!-- Modal para Visualização Rápida -->
+    <div class="modal fade" id="modalQuickView" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalhes da Reserva</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="quickViewContent">
+                    <!-- Conteúdo preenchido via JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal para Editar Status -->
     <div class="modal fade" id="modalStatus" tabindex="-1" aria-hidden="true">
@@ -343,6 +700,21 @@
         </div>
     </div>
 
+    <!-- Toast de Notificação -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-bell me-2" id="toast-icon"></i>
+                <strong class="me-auto" id="toast-title">Notificação</strong>
+                <small>Agora</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-message">
+                Operação realizada com sucesso.
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // URL do Google Apps Script
@@ -358,10 +730,25 @@
         let sortDirection = 'desc';
         let searchTerm = '';
         let statusFilter = '';
+        let dataInicioFilter = '';
+        let dataFimFilter = '';
+        let valorMinFilter = '';
+        let valorMaxFilter = '';
         let statusChart = null;
         let dateChart = null;
+        let currentView = 'table'; // 'table' or 'cards'
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Inicializar toasts
+            const toastEl = document.getElementById('liveToast');
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            
             // Carregar dados ao iniciar
             carregarDados();
             
@@ -370,6 +757,39 @@
             document.getElementById('btnSalvarStatus').addEventListener('click', salvarStatus);
             document.getElementById('btnConfirmDelete').addEventListener('click', confirmarExclusao);
             document.getElementById('btnExportPDF').addEventListener('click', exportarPDF);
+            document.getElementById('btnExportCSV').addEventListener('click', exportarCSV);
+            document.getElementById('btnAplicarFiltros').addEventListener('click', aplicarFiltrosAvancados);
+            document.getElementById('btnLimparFiltros').addEventListener('click', limparFiltrosAvancados);
+            
+            // Toggle dos filtros avançados
+            document.querySelector('.btn-toggle-filters').addEventListener('click', function() {
+                const advancedFilters = document.querySelector('.advanced-filters');
+                if (advancedFilters.style.display === 'block') {
+                    advancedFilters.style.display = 'none';
+                    this.innerHTML = '<i class="fas fa-filter me-1"></i> Filtros Avançados';
+                } else {
+                    advancedFilters.style.display = 'block';
+                    this.innerHTML = '<i class="fas fa-times me-1"></i> Ocultar Filtros';
+                }
+            });
+            
+            // Alternar entre visualização em tabela e cards
+            document.querySelectorAll('.view-option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.view-option-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentView = this.getAttribute('data-view');
+                    
+                    if (currentView === 'table') {
+                        document.getElementById('tabela-reservas').style.display = 'table';
+                        document.getElementById('cards-container').style.display = 'none';
+                    } else {
+                        document.getElementById('tabela-reservas').style.display = 'none';
+                        document.getElementById('cards-container').style.display = 'block';
+                        exibirCards(filtrarDados());
+                    }
+                });
+            });
             
             // Configurar eventos de ordenação
             document.querySelectorAll('.sortable').forEach(header => {
@@ -383,29 +803,76 @@
             document.getElementById('searchInput').addEventListener('input', function(e) {
                 searchTerm = e.target.value.toLowerCase();
                 currentPage = 1;
-                exibirDados(filtrarDados());
+                if (currentView === 'table') {
+                    exibirDados(filtrarDados());
+                } else {
+                    exibirCards(filtrarDados());
+                }
             });
             
             // Configurar filtro de status
             document.getElementById('statusFilter').addEventListener('change', function(e) {
                 statusFilter = e.target.value;
                 currentPage = 1;
-                exibirDados(filtrarDados());
+                if (currentView === 'table') {
+                    exibirDados(filtrarDados());
+                } else {
+                    exibirCards(filtrarDados());
+                }
             });
             
             // Configurar itens por página
             document.getElementById('itemsPerPage').addEventListener('change', function(e) {
                 itemsPerPage = parseInt(e.target.value);
                 currentPage = 1;
-                exibirDados(filtrarDados());
+                if (currentView === 'table') {
+                    exibirDados(filtrarDados());
+                } else {
+                    exibirCards(filtrarDados());
+                }
+            });
+            
+            // Configurar filtros rápidos
+            document.querySelectorAll('.badge-filter').forEach(badge => {
+                badge.addEventListener('click', function() {
+                    statusFilter = this.getAttribute('data-status');
+                    document.getElementById('statusFilter').value = statusFilter;
+                    currentPage = 1;
+                    if (currentView === 'table') {
+                        exibirDados(filtrarDados());
+                    } else {
+                        exibirCards(filtrarDados());
+                    }
+                });
             });
         });
+
+        // Função para exibir notificação
+        function showNotification(title, message, type = 'success') {
+            const toast = bootstrap.Toast.getInstance(document.getElementById('liveToast'));
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-message').textContent = message;
+            
+            const icon = document.getElementById('toast-icon');
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle me-2 text-success';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle me-2 text-danger';
+            } else if (type === 'warning') {
+                icon.className = 'fas fa-exclamation-triangle me-2 text-warning';
+            } else {
+                icon.className = 'fas fa-bell me-2 text-primary';
+            }
+            
+            toast.show();
+        }
 
         // Função para carregar dados da planilha
         async function carregarDados() {
             try {
                 document.getElementById('loading').style.display = 'flex';
                 document.getElementById('tabela-reservas').style.display = 'none';
+                document.getElementById('cards-container').style.display = 'none';
                 document.getElementById('paginationNav').style.display = 'none';
                 
                 // Adicionar timestamp para evitar cache
@@ -414,19 +881,67 @@
                 
                 if (data.success) {
                     reservas = data.reservas;
-                    exibirDados(filtrarDados());
+                    if (currentView === 'table') {
+                        exibirDados(filtrarDados());
+                    } else {
+                        exibirCards(filtrarDados());
+                    }
                     atualizarEstatisticas(reservas);
                     atualizarGraficos(reservas);
+                    showNotification('Sucesso', 'Dados carregados com sucesso.', 'success');
                 } else {
-                    alert('Erro ao carregar dados: ' + data.message);
+                    showNotification('Erro', 'Erro ao carregar dados: ' + data.message, 'error');
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao conectar com a planilha. Verifique se o script foi implantado corretamente.');
+                showNotification('Erro', 'Erro ao conectar com a planilha. Verifique se o script foi implantado corretamente.', 'error');
             } finally {
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('tabela-reservas').style.display = 'table';
+                if (currentView === 'table') {
+                    document.getElementById('tabela-reservas').style.display = 'table';
+                } else {
+                    document.getElementById('cards-container').style.display = 'block';
+                }
             }
+        }
+
+        // Função para aplicar filtros avançados
+        function aplicarFiltrosAvancados() {
+            dataInicioFilter = document.getElementById('dataInicioFilter').value;
+            dataFimFilter = document.getElementById('dataFimFilter').value;
+            valorMinFilter = document.getElementById('valorMinFilter').value;
+            valorMaxFilter = document.getElementById('valorMaxFilter').value;
+            
+            currentPage = 1;
+            if (currentView === 'table') {
+                exibirDados(filtrarDados());
+            } else {
+                exibirCards(filtrarDados());
+            }
+            
+            showNotification('Filtros', 'Filtros avançados aplicados.', 'success');
+        }
+
+        // Função para limpar filtros avançados
+        function limparFiltrosAvancados() {
+            document.getElementById('dataInicioFilter').value = '';
+            document.getElementById('dataFimFilter').value = '';
+            document.getElementById('valorMinFilter').value = '';
+            document.getElementById('valorMaxFilter').value = '';
+            
+            dataInicioFilter = '';
+            dataFimFilter = '';
+            valorMinFilter = '';
+            valorMaxFilter = '';
+            
+            currentPage = 1;
+            if (currentView === 'table') {
+                exibirDados(filtrarDados());
+            } else {
+                exibirCards(filtrarDados());
+            }
+            
+            showNotification('Filtros', 'Filtros avançados limpos.', 'success');
         }
 
         // Função para filtrar dados com base na pesquisa e filtros
@@ -450,6 +965,40 @@
             // Aplicar filtro de status
             if (statusFilter) {
                 dadosFiltrados = dadosFiltrados.filter(reserva => reserva.confirmado === statusFilter);
+            }
+            
+            // Aplicar filtro de data início
+            if (dataInicioFilter) {
+                dadosFiltrados = dadosFiltrados.filter(reserva => {
+                    if (!reserva.submittedat) return false;
+                    const reservaDate = new Date(reserva.submittedat).toISOString().split('T')[0];
+                    return reservaDate >= dataInicioFilter;
+                });
+            }
+            
+            // Aplicar filtro de data fim
+            if (dataFimFilter) {
+                dadosFiltrados = dadosFiltrados.filter(reserva => {
+                    if (!reserva.submittedat) return false;
+                    const reservaDate = new Date(reserva.submittedat).toISOString().split('T')[0];
+                    return reservaDate <= dataFimFilter;
+                });
+            }
+            
+            // Aplicar filtro de valor mínimo
+            if (valorMinFilter) {
+                dadosFiltrados = dadosFiltrados.filter(reserva => {
+                    if (!reserva.preco) return false;
+                    return parseFloat(reserva.preco) >= parseFloat(valorMinFilter);
+                });
+            }
+            
+            // Aplicar filtro de valor máximo
+            if (valorMaxFilter) {
+                dadosFiltrados = dadosFiltrados.filter(reserva => {
+                    if (!reserva.preco) return false;
+                    return parseFloat(reserva.preco) <= parseFloat(valorMaxFilter);
+                });
             }
             
             // Ordenar dados
@@ -490,7 +1039,7 @@
             
             if (dados.length === 0) {
                 const tr = document.createElement('tr');
-                tr.innerHTML = '<td colspan="8" class="text-center">Nenhuma reserva encontrada</td>';
+                tr.innerHTML = '<td colspan="8" class="text-center py-4">Nenhuma reserva encontrada</td>';
                 tbody.appendChild(tr);
                 document.getElementById('paginationNav').style.display = 'none';
                 return;
@@ -517,7 +1066,7 @@
                 // Verificar se há comprovante
                 let comprovanteHTML = 'N/A';
                 if (reserva.comprovante) {
-                    comprovanteHTML = `<a href="${reserva.comprovante}" class="comprovante-link" target="_blank">Ver Comprovante</a>`;
+                    comprovanteHTML = `<a href="${reserva.comprovante}" class="comprovante-link" target="_blank" data-bs-toggle="tooltip" title="Ver comprovante"><i class="fas fa-receipt"></i></a>`;
                 }
                 
                 // Exibir os dados
@@ -525,15 +1074,18 @@
                     <td>${reserva.nome || 'Nome não informado'}</td>
                     <td>${reserva.contato || 'N/A'}</td>
                     <td>${reserva.quantidade || 'N/A'}</td>
-                    <td>${reserva.preco ? 'R$ ' + reserva.preco : 'N/A'}</td>
+                    <td>${reserva.preco ? 'R$ ' + parseFloat(reserva.preco).toFixed(2) : 'N/A'}</td>
                     <td>${dataFormatada}</td>
                     <td>${comprovanteHTML}</td>
                     <td><span class="status-badge ${classeStatus}">${status}</span></td>
                     <td class="action-buttons">
-                        <button class="btn btn-sm btn-outline-primary btn-action btn-editar" data-id="${reserva.id}">
+                        <button class="btn btn-sm btn-outline-info btn-action btn-quickview" data-id="${reserva.id}" data-bs-toggle="tooltip" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary btn-action btn-editar" data-id="${reserva.id}" data-bs-toggle="tooltip" title="Editar status">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger btn-action btn-excluir" data-id="${reserva.id}">
+                        <button class="btn btn-sm btn-outline-danger btn-action btn-excluir" data-id="${reserva.id}" data-bs-toggle="tooltip" title="Excluir">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -542,7 +1094,14 @@
                 tbody.appendChild(tr);
             });
             
-            // Adicionar event listeners aos botões de editar e excluir
+            // Adicionar event listeners aos botões
+            document.querySelectorAll('.btn-quickview').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    abrirModalVisualizacao(id);
+                });
+            });
+            
             document.querySelectorAll('.btn-editar').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = this.getAttribute('data-id');
@@ -551,6 +1110,114 @@
             });
             
             document.querySelectorAll('.btn-excluir').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    abrirModalExcluir(id);
+                });
+            });
+            
+            // Atualizar paginação
+            atualizarPaginacao(totalPages);
+        }
+
+        // Função para exibir dados em cards
+        function exibirCards(dados) {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+            
+            if (dados.length === 0) {
+                container.innerHTML = '<div class="text-center py-4">Nenhuma reserva encontrada</div>';
+                document.getElementById('paginationNav').style.display = 'none';
+                return;
+            }
+            
+            // Calcular paginação
+            const totalPages = Math.ceil(dados.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, dados.length);
+            const pageData = dados.slice(startIndex, endIndex);
+            
+            pageData.forEach(reserva => {
+                // Formatar data
+                const dataFormatada = reserva.submittedat ? new Date(reserva.submittedat).toLocaleDateString('pt-BR') : 'N/A';
+                
+                // Determinar classe do status
+                let status = reserva.confirmado || 'Pendente';
+                let classeStatus = 'status-pendente';
+                if (status === 'Confirmado') classeStatus = 'status-confirmado';
+                if (status === 'Cancelado') classeStatus = 'status-cancelado';
+                
+                // Verificar se há comprovante
+                let comprovanteHTML = 'N/A';
+                if (reserva.comprovante) {
+                    comprovanteHTML = `<a href="${reserva.comprovante}" class="comprovante-link" target="_blank" data-bs-toggle="tooltip" title="Ver comprovante"><i class="fas fa-receipt"></i> Ver comprovante</a>`;
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'reserva-card';
+                card.innerHTML = `
+                    <div class="card-row">
+                        <div class="card-label">Nome:</div>
+                        <div>${reserva.nome || 'Nome não informado'}</div>
+                    </div>
+                    <div class="card-row">
+                        <div class="card-label">Contato:</div>
+                        <div>${reserva.contato || 'N/A'}</div>
+                    </div>
+                    <div class="card-row">
+                        <div class="card-label">Quantidade:</div>
+                        <div>${reserva.quantidade || 'N/A'}</div>
+                    </div>
+                    <div class="card-row">
+                        <div class="card-label">Preço:</div>
+                        <div>${reserva.preco ? 'R$ ' + parseFloat(reserva.preco).toFixed(2) : 'N/A'}</div>
+                    </div>
+                    <div class="card-row">
+                        <div class="card-label">Data:</div>
+                        <div>${dataFormatada}</div>
+                    </div>
+                    <div class="card-row">
+                        <div class="card-label">Comprovante:</div>
+                        <div>${comprovanteHTML}</div>
+                    </div>
+                    <div class="card-row">
+                        <div class="card-label">Status:</div>
+                        <div><span class="status-badge ${classeStatus}">${status}</span></div>
+                    </div>
+                    <div class="card-row mt-3">
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline-info btn-action btn-quickview" data-id="${reserva.id}" data-bs-toggle="tooltip" title="Visualizar">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary btn-action btn-editar" data-id="${reserva.id}" data-bs-toggle="tooltip" title="Editar status">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-action btn-excluir" data-id="${reserva.id}" data-bs-toggle="tooltip" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            // Adicionar event listeners aos botões
+            container.querySelectorAll('.btn-quickview').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    abrirModalVisualizacao(id);
+                });
+            });
+            
+            container.querySelectorAll('.btn-editar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    abrirModalEditar(id);
+                });
+            });
+            
+            container.querySelectorAll('.btn-excluir').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = this.getAttribute('data-id');
                     abrirModalExcluir(id);
@@ -599,7 +1266,11 @@
                 pageLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     currentPage = parseInt(this.getAttribute('data-page'));
-                    exibirDados(filtrarDados());
+                    if (currentView === 'table') {
+                        exibirDados(filtrarDados());
+                    } else {
+                        exibirCards(filtrarDados());
+                    }
                 });
                 
                 pageItem.appendChild(pageLink);
@@ -639,7 +1310,11 @@
             }
             
             // Reexibir dados ordenados
-            exibirDados(filtrarDados());
+            if (currentView === 'table') {
+                exibirDados(filtrarDados());
+            } else {
+                exibirCards(filtrarDados());
+            }
         }
 
         // Função para atualizar estatísticas
@@ -735,6 +1410,51 @@
             });
         }
 
+        // Função para abrir modal de visualização rápida
+        function abrirModalVisualizacao(id) {
+            const reserva = reservas.find(i => i.id == id);
+            
+            if (reserva) {
+                const modalContent = document.getElementById('quickViewContent');
+                const dataFormatada = reserva.submittedat ? new Date(reserva.submittedat).toLocaleDateString('pt-BR') : 'N/A';
+                
+                // Determinar classe do status
+                let status = reserva.confirmado || 'Pendente';
+                let classeStatus = 'status-pendente';
+                if (status === 'Confirmado') classeStatus = 'status-confirmado';
+                if (status === 'Cancelado') classeStatus = 'status-cancelado';
+                
+                // Verificar se há comprovante
+                let comprovanteHTML = 'N/A';
+                if (reserva.comprovante) {
+                    comprovanteHTML = `<a href="${reserva.comprovante}" class="comprovante-link" target="_blank">Ver Comprovante</a>`;
+                }
+                
+                modalContent.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Nome:</strong> ${reserva.nome || 'Nome não informado'}</p>
+                            <p><strong>Contato:</strong> ${reserva.contato || 'N/A'}</p>
+                            <p><strong>Quantidade:</strong> ${reserva.quantidade || 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Preço:</strong> ${reserva.preco ? 'R$ ' + parseFloat(reserva.preco).toFixed(2) : 'N/A'}</p>
+                            <p><strong>Data:</strong> ${dataFormatada}</p>
+                            <p><strong>Status:</strong> <span class="status-badge ${classeStatus}">${status}</span></p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <p><strong>Comprovante:</strong> ${comprovanteHTML}</p>
+                        </div>
+                    </div>
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('modalQuickView'));
+                modal.show();
+            }
+        }
+
         // Função para abrir modal de edição
         function abrirModalEditar(id) {
             reservaEditando = reservas.find(i => i.id == id);
@@ -778,18 +1498,18 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('Status atualizado com sucesso!');
+                    showNotification('Sucesso', 'Status atualizado com sucesso!', 'success');
                     // Fechar modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('modalStatus'));
                     modal.hide();
                     // Recarregar dados
                     carregarDados();
                 } else {
-                    alert('Erro ao atualizar status: ' + data.message);
+                    showNotification('Erro', 'Erro ao atualizar status: ' + data.message, 'error');
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao conectar com a planilha.');
+                showNotification('Erro', 'Erro ao conectar com a planilha.', 'error');
             }
         }
 
@@ -809,27 +1529,27 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('Reserva excluída com sucesso!');
+                    showNotification('Sucesso', 'Reserva excluída com sucesso!', 'success');
                     // Fechar modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('modalDelete'));
                     modal.hide();
                     // Recarregar dados
                     carregarDados();
                 } else {
-                    alert('Erro ao excluir reserva: ' + data.message);
+                    showNotification('Erro', 'Erro ao excluir reserva: ' + data.message, 'error');
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao conectar com a planilha.');
+                showNotification('Erro', 'Erro ao conectar com a planilha.', 'error');
             }
         }
 
-        // Função para exportar PDF - CORRIGIDA
+        // Função para exportar PDF
         async function exportarPDF() {
             try {
                 // Mostrar loading
                 const loadingIndicator = document.createElement('div');
-                loadingIndicator.style = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10000; background:rgba(255,255,255,0.9); padding:20px; border-radius:5px;';
+                loadingIndicator.style = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10000; background:rgba(255,255,255,0.9); padding:20px; border-radius:5px; text-align:center;';
                 loadingIndicator.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Gerando PDF...</span></div><p class="mt-2">Gerando PDF...</p>';
                 document.body.appendChild(loadingIndicator);
                 
@@ -899,7 +1619,7 @@
                         reserva.nome || 'Nome não informado',
                         reserva.contato || 'N/A',
                         reserva.quantidade || 'N/A',
-                        reserva.preco ? 'R$ ' + reserva.preco : 'N/A',
+                        reserva.preco ? 'R$ ' + parseFloat(reserva.preco).toFixed(2) : 'N/A',
                         dataFormatada,
                         status
                     ].forEach(text => {
@@ -951,16 +1671,58 @@
                 
                 // Salvar PDF
                 doc.save(`reservas_${new Date().toISOString().slice(0, 10)}.pdf`);
+                showNotification('Sucesso', 'PDF exportado com sucesso!', 'success');
                 
             } catch (error) {
                 console.error('Erro ao gerar PDF:', error);
-                alert('Erro ao gerar PDF. Verifique o console para mais detalhes.');
+                showNotification('Erro', 'Erro ao gerar PDF. Verifique o console para mais detalhes.', 'error');
                 
                 // Remover loading em caso de erro
                 const loadingIndicator = document.querySelector('div[style*="position:fixed; top:50%; left:50%"]');
                 if (loadingIndicator) {
                     document.body.removeChild(loadingIndicator);
                 }
+            }
+        }
+
+        // Função para exportar CSV
+        function exportarCSV() {
+            try {
+                const dadosFiltrados = filtrarDados();
+                
+                // Preparar dados para CSV
+                const dadosCSV = dadosFiltrados.map(reserva => {
+                    return {
+                        'Nome': reserva.nome || '',
+                        'Contato': reserva.contato || '',
+                        'Quantidade': reserva.quantidade || '',
+                        'Preço': reserva.preco ? parseFloat(reserva.preco).toFixed(2) : '',
+                        'Data': reserva.submittedat ? new Date(reserva.submittedat).toLocaleDateString('pt-BR') : '',
+                        'Status': reserva.confirmado || 'Pendente',
+                        'Comprovante': reserva.comprovante || ''
+                    };
+                });
+                
+                // Converter para CSV
+                const csv = Papa.unparse(dadosCSV);
+                
+                // Criar blob e download
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `reservas_${new Date().toISOString().slice(0, 10)}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showNotification('Sucesso', 'CSV exportado com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao exportar CSV:', error);
+                showNotification('Erro', 'Erro ao exportar CSV.', 'error');
             }
         }
     </script>
