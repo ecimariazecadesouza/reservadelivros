@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Inscrições</title>
+    <title>Painel Administrativo - Reservas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Bibliotecas para Gráficos (Chart.js ) e PDF (jsPDF) -->
@@ -33,7 +33,7 @@
         <!-- Header -->
         <div class="header text-center">
             <h1><i class="fas fa-tachometer-alt"></i> Painel Administrativo</h1>
-            <p>Gerenciamento de Inscrições</p>
+            <p>Gerenciamento de Reservas</p>
         </div>
 
         <!-- Gráficos -->
@@ -41,7 +41,7 @@
             <div class="col-xl-8 col-lg-7">
                 <div class="card shadow mb-4">
                     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line"></i> Inscrições por Dia</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line"></i> Reservas por Dia</h6>
                     </div>
                     <div class="card-body"><canvas id="graficoInscricoesDia"></canvas></div>
                 </div>
@@ -49,7 +49,7 @@
             <div class="col-xl-4 col-lg-5">
                 <div class="card shadow mb-4">
                     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie"></i> Status das Inscrições</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie"></i> Status das Reservas</h6>
                     </div>
                     <div class="card-body"><canvas id="graficoStatus"></canvas></div>
                 </div>
@@ -78,9 +78,9 @@
             </div>
         </div>
 
-        <!-- Tabela de Inscrições -->
+        <!-- Tabela de Reservas -->
         <div class="card">
-            <div class="card-header"><i class="fas fa-list"></i> Lista de Inscrições</div>
+            <div class="card-header"><i class="fas fa-list"></i> Lista de Reservas</div>
             <div class="card-body">
                 <div class="table-responsive" id="tabela-container">
                     <div id="loading"><div class="spinner-border text-primary" role="status"></div></div>
@@ -295,7 +295,7 @@
                 options: { responsive: true, maintainAspectRatio: false, legend: { display: true, position: 'bottom' } }
             });
 
-            // Gráfico de Inscrições por Dia (Linha)
+            // Gráfico de Reservas por Dia (Linha)
             const inscricoesPorDia = dados.reduce((acc, i) => {
                 const data = new Date(i.submittedat).toLocaleDateString('pt-BR');
                 acc[data] = (acc[data] || 0) + 1;
@@ -310,7 +310,7 @@
                 data: {
                     labels: sortedDates,
                     datasets: [{
-                        label: "Inscrições",
+                        label: "Reservas",
                         data: sortedCounts,
                         borderColor: 'rgba(78, 115, 223, 1)',
                         backgroundColor: 'rgba(78, 115, 223, 0.05)',
@@ -327,10 +327,10 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            doc.text("Relatório de Inscrições", 14, 16);
+            doc.text("Relatório de Reservas", 14, 16);
             doc.setFontSize(10);
             doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 22);
-            doc.text(`Total de inscrições no filtro: ${dadosFiltrados.length}`, 14, 28);
+            doc.text(`Total de Reservas no filtro: ${dadosFiltrados.length}`, 14, 28);
 
             const head = [['Nome', 'Contato', 'Qtde', 'Preço', 'Data', 'Status']];
             const body = dadosFiltrados.map(i => [
