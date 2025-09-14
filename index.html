@@ -136,6 +136,12 @@
         .action-buttons {
             white-space: nowrap;
         }
+        
+        #pdfExportContainer {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+        }
     </style>
 </head>
 <body>
@@ -286,6 +292,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Container oculto para exportação PDF -->
+    <div id="pdfExportContainer"></div>
 
     <!-- Modal para Editar Status -->
     <div class="modal fade" id="modalStatus" tabindex="-1" aria-hidden="true">
@@ -815,43 +824,98 @@
             }
         }
 
-        // Função para exportar PDF
+        // Função para exportar PDF - CORRIGIDA
         async function exportarPDF() {
             try {
                 // Mostrar loading
-                const originalContent = document.body.innerHTML;
                 const loadingIndicator = document.createElement('div');
                 loadingIndicator.style = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10000; background:rgba(255,255,255,0.9); padding:20px; border-radius:5px;';
                 loadingIndicator.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Gerando PDF...</span></div><p class="mt-2">Gerando PDF...</p>';
                 document.body.appendChild(loadingIndicator);
                 
-                // Usar html2canvas para capturar a tabela
-                const tabela = document.getElementById('tabela-reservas');
+                // Obter dados filtrados
+                const dadosFiltrados = filtrarDados();
                 
-                // Criar um clone da tabela para o PDF
-                const tabelaClone = tabela.cloneNode(true);
+                // Criar conteúdo para o PDF
+                const pdfContainer = document.getElementById('pdfExportContainer');
+                pdfContainer.innerHTML = '';
                 
-                // Remover coluna de ações do clone
-                const acoesHeader = tabelaClone.rows[0].cells[7];
-                acoesHeader.parentNode.removeChild(acoesHeader);
+                const printContent = document.createElement('div');
+                printContent.style.padding = '20px';
+                printContent.style.backgroundColor = 'white';
                 
-                Array.from(tabelaClone.rows).forEach(row => {
-                    if (row.cells.length > 7) {
-                        row.deleteCell(7);
-                    }
+                // Adicionar título e informações
+                printContent.innerHTML = `
+                    <h2 class="text-center mb-4">Relatório de Reservas</h2>
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <p><strong>Data de geração:</strong> ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+                            <p><strong>Total de reservas:</strong> ${dadosFiltrados.length}</p>
+                        </div>
+                        <div class="col-6">
+                            <p><strong>Confirmadas:</strong> ${dadosFiltrados.filter(i => i.confirmado === 'Confirmado').length}</p>
+                            <p><strong>Pendentes:</strong> ${dadosFiltrados.filter(i => !i.confirmado || i.confirmado === 'Pendente').length}</p>
+                            <p><strong>Canceladas:</strong> ${dadosFiltrados.filter(i => i.confirmado === 'Cancelado').length}</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Criar tabela para o PDF
+                const table = document.createElement('table');
+                table.className = 'table';
+                table.style.width = '100%';
+                table.style.borderCollapse = 'collapse';
+                
+                // Criar cabeçalho da tabela
+                let thead = document.createElement('thead');
+                let headerRow = document.createElement('tr');
+                
+                ['Nome', 'Contato', 'Quantidade', 'Preço', 'Data', 'Status'].forEach(col => {
+                    let th = document.createElement('th');
+                    th.textContent = col;
+                    th.style.border = '1px solid #ddd';
+                    th.style.padding = '8px';
+                    th.style.backgroundColor = '#f8f9fa';
+                    headerRow.appendChild(th);
                 });
                 
-                // Adicionar título e data ao PDF
-                const printContent = document.createElement('div');
-                printContent.innerHTML = `
-                    <h2 class="text-center">Relatório de Reservas</h2>
-                    <p class="text-center">Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
-                    <p class="text-center">Total de reservas: ${document.getElementById('totalReservas').textContent} | 
-                    Confirmadas: ${document.getElementById('totalConfirmados').textContent} | 
-                    Pendentes: ${document.getElementById('totalPendentes').textContent} | 
-                    Canceladas: ${document.getElementById('totalCancelados').textContent}</p>
-                `;
-                printContent.appendChild(tabelaClone);
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+                
+                // Criar corpo da tabela
+                let tbody = document.createElement('tbody');
+                
+                dadosFiltrados.forEach(reserva => {
+                    let row = document.createElement('tr');
+                    
+                    // Formatar data
+                    const dataFormatada = reserva.submittedat ? new Date(reserva.submittedat).toLocaleDateString('pt-BR') : 'N/A';
+                    
+                    // Determinar status
+                    let status = reserva.confirmado || 'Pendente';
+                    
+                    // Adicionar células
+                    [
+                        reserva.nome || 'Nome não informado',
+                        reserva.contato || 'N/A',
+                        reserva.quantidade || 'N/A',
+                        reserva.preco ? 'R$ ' + reserva.preco : 'N/A',
+                        dataFormatada,
+                        status
+                    ].forEach(text => {
+                        let td = document.createElement('td');
+                        td.textContent = text;
+                        td.style.border = '1px solid #ddd';
+                        td.style.padding = '8px';
+                        row.appendChild(td);
+                    });
+                    
+                    tbody.appendChild(row);
+                });
+                
+                table.appendChild(tbody);
+                printContent.appendChild(table);
+                pdfContainer.appendChild(printContent);
                 
                 // Usar html2canvas para converter em imagem
                 const canvas = await html2canvas(printContent, {
@@ -891,6 +955,12 @@
             } catch (error) {
                 console.error('Erro ao gerar PDF:', error);
                 alert('Erro ao gerar PDF. Verifique o console para mais detalhes.');
+                
+                // Remover loading em caso de erro
+                const loadingIndicator = document.querySelector('div[style*="position:fixed; top:50%; left:50%"]');
+                if (loadingIndicator) {
+                    document.body.removeChild(loadingIndicator);
+                }
             }
         }
     </script>
