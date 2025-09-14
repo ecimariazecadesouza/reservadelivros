@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Inscrições</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--primary-color) 10%, #224abe 100%);
+            color: white;
+            position: fixed;
+            z-index: 100;
+        }
+        
+        .sidebar .nav-item {
+            margin-bottom: 0.25rem;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 1rem;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+        }
+        
+        .sidebar .nav-link.active {
+            font-weight: 700;
+            color: white;
+        }
+        
+        .topbar {
+            height: 4.375rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        .card {
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            border: 1px solid #e3e6f0;
+        }
+        
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        .table-responsive {
+            max-height: 500px;
+        }
+        
+        .status-badge {
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 700;
+            border-radius: 0.35rem;
+        }
+        
+        .status-pendente {
+            color: #856404;
+            background-color: #fff3cd;
+        }
+        
+        .status-confirmado {
+            color: #155724;
+            background-color: #d4edda;
+        }
+        
+        .status-cancelado {
+            color: #721c24;
+            background-color: #f8d7da;
+        }
+        
+        #loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .comprovante-img {
+            max-width: 100px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .comprovante-img:hover {
+            transform: scale(1.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar px-0">
+                <div class="text-center my-4">
+                    <h5>Painel Administrativo</h5>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">
+                            <i class="fas fa-fw fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-fw fa-users"></i>
+                            <span>Inscrições</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-fw fa-cog"></i>
+                            <span>Configurações</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-fw fa-sign-out-alt"></i>
+                            <span>Sair</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Conteúdo Principal -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- Topbar -->
+                <div class="topbar mb-4">
+                    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+                        <div class="container-fluid">
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topbarNav">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse" id="topbarNav">
+                                <ul class="navbar-nav ms-auto">
+                                    <li class="nav-item dropdown no-arrow mx-1">
+                                        <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-bell fa-fw"></i>
+                                            <span class="badge bg-danger badge-counter">3+</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item dropdown no-arrow">
+                                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                            <span class="mr-2 d-none d-lg-inline text-gray-600 small">Administrador</span>
+                                            <img class="img-profile rounded-circle" width="32" src="https://via.placeholder.com/32">
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+
+                <!-- Conteúdo -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Gerenciamento de Inscrições</h1>
+                            <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" id="btnAtualizar">
+                                <i class="fas fa-sync-alt fa-sm text-white-50"></i> Atualizar Dados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cards de Estatísticas -->
+                <div class="row">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total de Inscrições
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalInscricoes">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Confirmados
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalConfirmados">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Pendentes
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalPendentes">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-danger shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                            Cancelados
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCancelados">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Inscrições -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Lista de Inscrições</h6>
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive" id="tabela-container">
+                            <div id="loading">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                            </div>
+                            <table class="table table-bordered" id="tabela-inscricoes" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Contato</th>
+                                        <th>Quantidade</th>
+                                        <th>Preço</th>
+                                        <th>Data Inscrição</th>
+                                        <th>Comprovante</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Os dados serão preenchidos via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Status -->
+    <div class="modal fade" id="modalStatus" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Alterar Status da Inscrição</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Alterar status de: <strong id="nome-inscrito"></strong></p>
+                    <div class="mb-3">
+                        <label for="selectStatus" class="form-label">Novo Status</label>
+                        <select class="form-select" id="selectStatus">
+                            <option value="Pendente">Pendente</option>
+                            <option value="Confirmado">Confirmado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnSalvarStatus">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Visualizar Comprovante -->
+    <div class="modal fade" id="modalComprovante" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Comprovante de Inscrição</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="comprovante-img" src="" class="img-fluid" alt="Comprovante">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // URL do Google Apps Script (substitua pela sua URL após implantar o script)
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwIAOHo498s45Ye1JRa019x1IqKfALWh8vjAGp1L_oW9F_7PKyrxwaoiWfD4tXhEgYO/exec";
+        
+        // Variáveis globais
+        let inscricoes = [];
+        let inscricaoEditando = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carregar dados ao iniciar
+            carregarDados();
+            
+            // Configurar event listeners
+            document.getElementById('btnAtualizar').addEventListener('click', carregarDados);
+            document.getElementById('btnSalvarStatus').addEventListener('click', salvarStatus);
+        });
+
+        // Função para carregar dados da planilha
+        async function carregarDados() {
+            try {
+                document.getElementById('loading').style.display = 'flex';
+                document.getElementById('tabela-inscricoes').style.display = 'none';
+                
+                const response = await fetch(SCRIPT_URL + '?acao=ler');
+                const data = await response.json();
+                
+                if (data.success) {
+                    inscricoes = data.inscricoes;
+                    exibirDados(inscricoes);
+                    atualizarEstatisticas(inscricoes);
+                } else {
+                    alert('Erro ao carregar dados: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao conectar com a planilha. Verifique o console para mais detalhes.');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('tabela-inscricoes').style.display = 'table';
+            }
+        }
+
+        // Função para exibir dados na tabela
+        function exibirDados(dados) {
+            const tbody = document.querySelector('#tabela-inscricoes tbody');
+            tbody.innerHTML = '';
+            
+            dados.forEach(inscricao => {
+                const tr = document.createElement('tr');
+                
+                // Formatar data
+                const dataFormatada = new Date(inscricao.submittedat).toLocaleDateString('pt-BR');
+                
+                // Determinar classe do status
+                let classeStatus = 'status-pendente';
+                if (inscricao.confirmado === 'Confirmado') classeStatus = 'status-confirmado';
+                if (inscricao.confirmado === 'Cancelado') classeStatus = 'status-cancelado';
+                
+                // Verificar se há comprovante
+                let comprovanteHTML = 'N/A';
+                if (inscricao.comprovante) {
+                    comprovanteHTML = `<img src="${inscricao.comprovante}" class="comprovante-img" data-bs-toggle="modal" data-bs-target="#modalComprovante" onclick="document.getElementById('comprovante-img').src='${inscricao.comprovante}'">`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${inscricao.nome}</td>
+                    <td>${inscricao.contato}</td>
+                    <td>${inscricao.quantidade}</td>
+                    <td>R$ ${inscricao.preco}</td>
+                    <td>${dataFormatada}</td>
+                    <td>${comprovanteHTML}</td>
+                    <td><span class="status-badge ${classeStatus}">${inscricao.confirmado || 'Pendente'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${inscricao.id}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+            
+            // Adicionar event listeners aos botões de editar
+            document.querySelectorAll('.btn-editar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    abrirModalEditar(id);
+                });
+            });
+        }
+
+        // Função para atualizar estatísticas
+        function atualizarEstatisticas(dados) {
+            document.getElementById('totalInscricoes').textContent = dados.length;
+            document.getElementById('totalConfirmados').textContent = dados.filter(i => i.confirmado === 'Confirmado').length;
+            document.getElementById('totalPendentes').textContent = dados.filter(i => !i.confirmado || i.confirmado === 'Pendente').length;
+            document.getElementById('totalCancelados').textContent = dados.filter(i => i.confirmado === 'Cancelado').length;
+        }
+
+        // Função para abrir modal de edição
+        function abrirModalEditar(id) {
+            inscricaoEditando = inscricoes.find(i => i.id == id);
+            
+            if (inscricaoEditando) {
+                document.getElementById('nome-inscrito').textContent = inscricaoEditando.nome;
+                document.getElementById('selectStatus').value = inscricaoEditando.confirmado || 'Pendente';
+                
+                const modal = new bootstrap.Modal(document.getElementById('modalStatus'));
+                modal.show();
+            }
+        }
+
+        // Função para salvar alterações de status
+        async function salvarStatus() {
+            if (!inscricaoEditando) return;
+            
+            const novoStatus = document.getElementById('selectStatus').value;
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        acao: 'atualizar',
+                        id: inscricaoEditando.id,
+                        status: novoStatus
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Status atualizado com sucesso!');
+                    // Fechar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalStatus'));
+                    modal.hide();
+                    // Recarregar dados
+                    carregarDados();
+                } else {
+                    alert('Erro ao atualizar status: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao conectar com a planilha.');
+            }
+        }
+    </script>
+</body>
+</html>
