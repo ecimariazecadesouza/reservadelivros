@@ -3,69 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Reservas</title>
+    <title>Painel Administrativo - Vendas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- As bibliotecas jsPDF e Chart.js serão carregadas via JavaScript para garantir a ordem correta -->
     <style>
-        :root {
-            --primary-color: #4e73df; --secondary-color: #858796; --success-color: #1cc88a;
-            --danger-color: #e74a3b; --warning-color: #f6c23e;
-        }
+        :root { --primary-color: #4e73df; --secondary-color: #858796; --success-color: #1cc88a; --danger-color: #e74a3b; --warning-color: #f6c23e; }
         body { background-color: #f8f9fc; font-family: 'Nunito', sans-serif; padding: 20px; }
         .header { background: linear-gradient(180deg, var(--primary-color ) 10%, #224abe 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
         .card { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1); border: 1px solid #e3e6f0; margin-bottom: 20px; border-radius: 10px; }
         .card-header { background-color: #f8f9fc; border-bottom: 1px solid #e3e6f0; font-weight: bold; }
         #loading { display: flex; justify-content: center; align-items: center; height: 300px; }
-        .sortable { cursor: pointer; }
-        .sortable:hover { color: var(--primary-color); }
+        .sortable { cursor: pointer; } .sortable:hover { color: var(--primary-color); }
         .sortable::after { font-family: "Font Awesome 6 Free"; font-weight: 900; content: " \f0dc"; opacity: 0.4; }
-        .sortable.asc::after { content: " \f0de"; opacity: 1; }
-        .sortable.desc::after { content: " \f0dd"; opacity: 1; }
+        .sortable.asc::after { content: " \f0de"; opacity: 1; } .sortable.desc::after { content: " \f0dd"; opacity: 1; }
         .page-item.active .page-link { z-index: 1; }
     </style>
 </head>
 <body>
     <div class="container-fluid">
         <!-- Header -->
-        <div class="header text-center">
-            <h1><i class="fas fa-tachometer-alt"></i> Painel Administrativo</h1>
-            <p>Gerenciamento de Reservas</p>
-        </div>
+        <div class="header text-center"><h1><i class="fas fa-tachometer-alt"></i> Painel Administrativo</h1><p>Gerenciamento de Vendas</p></div>
 
         <!-- Gráficos -->
         <div class="row">
-            <div class="col-xl-8 col-lg-7"><div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line"></i> Reservas por Dia</h6></div><div class="card-body"><canvas id="graficoReservasDia"></canvas></div></div></div>
-            <div class="col-xl-4 col-lg-5"><div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie"></i> Status das Reservas</h6></div><div class="card-body"><canvas id="graficoStatus"></canvas></div></div></div>
+            <div class="col-xl-8 col-lg-7"><div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line"></i> Vendas por Dia</h6></div><div class="card-body"><canvas id="graficoVendasDia"></canvas></div></div></div>
+            <div class="col-xl-4 col-lg-5"><div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie"></i> Status das Vendas</h6></div><div class="card-body"><canvas id="graficoStatus"></canvas></div></div></div>
         </div>
 
         <!-- Controles -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-md-6 mb-2 mb-md-0"><div class="input-group"><span class="input-group-text"><i class="fas fa-search"></i></span><input type="text" class="form-control" id="inputPesquisa" placeholder="Pesquisar em todas as colunas..."></div></div>
-                    <div class="col-md-6 text-md-end">
-                        <button class="btn btn-danger me-2" id="btnExportarPDF"><span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span><i class="fas fa-file-pdf"></i> Exportar PDF</button>
-                        <button class="btn btn-primary" id="btnAtualizar"><i class="fas fa-sync-alt"></i> Atualizar Dados</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="card mb-4"><div class="card-body"><div class="row align-items-center"><div class="col-md-6 mb-2 mb-md-0"><div class="input-group"><span class="input-group-text"><i class="fas fa-search"></i></span><input type="text" class="form-control" id="inputPesquisa" placeholder="Pesquisar em todas as colunas..."></div></div><div class="col-md-6 text-md-end"><button class="btn btn-danger me-2" id="btnExportarPDF"><span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span><i class="fas fa-file-pdf"></i> Exportar PDF</button><button class="btn btn-primary" id="btnAtualizar"><i class="fas fa-sync-alt"></i> Atualizar Dados</button></div></div></div></div>
 
-        <!-- Tabela de Reservas -->
-        <div class="card">
-            <div class="card-header"><i class="fas fa-list"></i> Lista de Reservas</div>
-            <div class="card-body">
-                <div class="table-responsive" id="tabela-container">
-                    <div id="loading"><div class="spinner-border text-primary" role="status"></div></div>
-                    <table class="table table-striped" id="tabela-Reservas" style="display: none;">
-                        <thead><tr><th class="sortable" data-column="nome">Cliente</th><th class="sortable" data-column="contato">Contato</th><th class="sortable" data-column="quantidade">Qtde</th><th class="sortable" data-column="preco">Preço</th><th class="sortable" data-column="submittedat">Data da Venda</th><th>Comprovante</th><th class="sortable" data-column="confirmado">Status</th><th>Ações</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <div id="paginacao-controles" class="d-flex justify-content-between align-items-center mt-3"></div>
-            </div>
-        </div>
+        <!-- Tabela de Vendas -->
+        <div class="card"><div class="card-header"><i class="fas fa-list"></i> Lista de Vendas</div><div class="card-body"><div class="table-responsive" id="tabela-container"><div id="loading"><div class="spinner-border text-primary" role="status"></div></div><table class="table table-striped" id="tabela-vendas" style="display: none;"><thead><tr><th class="sortable" data-column="nome">Cliente</th><th class="sortable" data-column="contato">Contato</th><th class="sortable" data-column="quantidade">Qtde</th><th class="sortable" data-column="preco">Preço</th><th class="sortable" data-column="submittedat">Data da Venda</th><th>Comprovante</th><th class="sortable" data-column="confirmado">Status</th><th>Ações</th></tr></thead><tbody></tbody></table></div><div id="paginacao-controles" class="d-flex justify-content-between align-items-center mt-3"></div></div></div>
     </div>
 
     <!-- Modais -->
@@ -75,215 +44,63 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- INÍCIO DA SEÇÃO DE VARIÁVEIS GLOBAIS ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwamZjF1wzqIwcRZuhmvj8hjMVqd023cpHEnzSbyFRU0Yr9T-fG3HPPaRkGnE8vjUj_/exec";
-        
-        let todasReservas = [];
-        let dadosFiltrados = [];
-        let vendaEditando = null;
-        let vendaDeletando = null;
+        let todasVendas = [], dadosFiltrados = [], vendaEditando = null, vendaDeletando = null;
         let sortConfig = { column: 'submittedat', direction: 'desc' };
         let paginacaoConfig = { currentPage: 1, itemsPerPage: 10 };
-        let graficoStatus, graficoReservasDia;
-        // --- FIM DA SEÇÃO DE VARIÁVEIS GLOBAIS ---
+        let graficoStatus, graficoVendasDia;
+        
+        function loadScript(src ) { return new Promise((resolve, reject) => { if (document.querySelector(`script[src="${src}"]`)) { return resolve(); } const script = document.createElement('script'); script.src = src; script.onload = resolve; script.onerror = () => reject(new Error(`Falha ao carregar o script: ${src}`)); document.head.appendChild(script); }); }
 
-        // --- INÍCIO DA SEÇÃO DE CARREGAMENTO DE SCRIPTS ---
-        // Função para carregar scripts dinamicamente e retornar uma Promise
-        function loadScript(src ) {
-            return new Promise((resolve, reject) => {
-                // Verifica se o script já não foi carregado
-                if (document.querySelector(`script[src="${src}"]`)) {
-                    resolve();
-                    return;
-                }
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = () => resolve();
-                script.onerror = () => reject(new Error(`Falha ao carregar o script: ${src}`));
-                document.head.appendChild(script);
-            });
-        }
-        // --- FIM DA SEÇÃO DE CARREGAMENTO DE SCRIPTS ---
-
-        // --- INÍCIO DA SEÇÃO DE EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', function() {
-            // Carrega Chart.js para os gráficos e depois os dados principais
-            loadScript("https://cdn.jsdelivr.net/npm/chart.js" ).then(carregarDados).catch(e => console.error(e));
-            
+            loadScript("https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" ).then(carregarDados).catch(e => console.error("Falha ao carregar Chart.js:", e));
             document.getElementById('btnAtualizar').addEventListener('click', carregarDados);
             document.getElementById('btnSalvarStatus').addEventListener('click', salvarStatus);
             document.getElementById('btnConfirmarDeletar').addEventListener('click', deletarVenda);
             document.getElementById('inputPesquisa').addEventListener('input', () => { paginacaoConfig.currentPage = 1; filtrarDados(); });
             document.getElementById('btnExportarPDF').addEventListener('click', exportarPDF);
-
-            document.querySelectorAll('.sortable').forEach(header => {
-                header.addEventListener('click', () => {
-                    const column = header.getAttribute('data-column');
-                    sortConfig.direction = (sortConfig.column === column && sortConfig.direction === 'asc') ? 'desc' : 'asc';
-                    sortConfig.column = column;
-                    ordenarEExibir();
-                });
-            });
+            document.querySelectorAll('.sortable').forEach(header => { header.addEventListener('click', () => { const column = header.getAttribute('data-column'); sortConfig.direction = (sortConfig.column === column && sortConfig.direction === 'asc') ? 'desc' : 'asc'; sortConfig.column = column; ordenarEExibir(); }); });
         });
-        // --- FIM DA SEÇÃO DE EVENT LISTENERS ---
 
-        // --- INÍCIO DA SEÇÃO DE MANIPULAÇÃO DE DADOS (CARREGAR, FILTRAR, ORDENAR) ---
-        async function carregarDados() {
-            document.getElementById('loading').style.display = 'flex';
-            document.getElementById('tabela-Reservas').style.display = 'none';
-            try {
-                const response = await fetch(`${SCRIPT_URL}?acao=ler&timestamp=${new Date().getTime()}`);
-                const data = await response.json();
-                if (data.success) {
-                    todasReservas = data.inscricoes; 
-                    filtrarDados();
-                    criarGraficos(todasReservas);
-                } else { alert('Erro ao carregar dados: ' + data.message); }
-            } catch (error) { console.error('Erro:', error); alert('Erro ao conectar com a planilha.');
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('tabela-Reservas').style.display = 'table';
-            }
-        }
-
-        function filtrarDados() {
-            const termo = document.getElementById('inputPesquisa').value.toLowerCase();
-            dadosFiltrados = !termo ? [...todasReservas] : todasReservas.filter(venda => Object.values(venda).some(val => String(val).toLowerCase().includes(termo)));
-            ordenarEExibir();
-        }
-
-        function ordenarEExibir() {
-            const { column, direction } = sortConfig;
-            dadosFiltrados.sort((a, b) => {
-                let valA = a[column] || '', valB = b[column] || '';
-                if (['preco', 'quantidade'].includes(column)) { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; }
-                else if (column === 'submittedat') { valA = new Date(valA).getTime() || 0; valB = new Date(valB).getTime() || 0; }
-                else { valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase(); }
-                if (valA < valB) return direction === 'asc' ? -1 : 1;
-                if (valA > valB) return direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-            document.querySelectorAll('.sortable').forEach(h => { h.classList.remove('asc', 'desc'); if (h.getAttribute('data-column') === column) h.classList.add(direction); });
-            exibirDadosPaginados();
-        }
-        // --- FIM DA SEÇÃO DE MANIPULAÇÃO DE DADOS ---
-
-        // --- INÍCIO DA SEÇÃO DE EXIBIÇÃO E PAGINAÇÃO ---
-        function exibirDadosPaginados() {
-            const { currentPage, itemsPerPage } = paginacaoConfig;
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            exibirDadosNaTabela(dadosFiltrados.slice(start, end));
-            atualizarControlesPaginacao();
-        }
-
-        function exibirDadosNaTabela(dados) {
-            const tbody = document.querySelector('#tabela-Reservas tbody');
-            tbody.innerHTML = dados.length === 0 ? '<tr><td colspan="8" class="text-center">Nenhuma venda encontrada</td></tr>' : '';
-            dados.forEach(venda => {
-                const tr = document.createElement('tr');
-                const dataFormatada = venda.submittedat ? new Date(venda.submittedat).toLocaleDateString('pt-BR') : 'N/A';
-                let status = venda.confirmado || 'Pendente';
-                let comprovanteHTML = 'N/A';
-                if (venda.comprovante) {
-                    if (venda.comprovante.toLowerCase().includes('.pdf') || venda.comprovante.includes('drive.google.com')) {
-                        comprovanteHTML = `<a href="${venda.comprovante}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-alt"></i> Ver</a>`;
-                    } else {
-                        comprovanteHTML = `<img src="${venda.comprovante}" style="max-width:60px; cursor:pointer;" data-bs-toggle="modal" data-bs-target="#modalComprovante" onclick="document.getElementById('comprovante-img').src='${venda.comprovante}'">`;
-                    }
-                }
-                tr.innerHTML = `<td>${venda.nome||'N/A'}</td><td>${venda.contato||'N/A'}</td><td>${venda.quantidade||'N/A'}</td><td>${venda.preco?'R$ '+parseFloat(venda.preco).toFixed(2):'N/A'}</td><td>${dataFormatada}</td><td>${comprovanteHTML}</td><td><span class="badge bg-${status.toLowerCase()=='confirmado'?'success':status.toLowerCase()=='cancelado'?'danger':'warning'} text-dark">${status}</span></td><td><button class="btn btn-sm btn-outline-primary" onclick="abrirModalEditar('${venda.id}')"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="abrirModalDeletar('${venda.id}')"><i class="fas fa-trash"></i></button></td>`;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function atualizarControlesPaginacao() {
-            const { currentPage, itemsPerPage } = paginacaoConfig;
-            const totalPages = Math.ceil(dadosFiltrados.length / itemsPerPage);
-            const container = document.getElementById('paginacao-controles');
-            container.innerHTML = `<span class="text-muted">Exibindo ${dadosFiltrados.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} a ${Math.min(currentPage * itemsPerPage, dadosFiltrados.length)} de ${dadosFiltrados.length}</span><ul class="pagination mb-0"></ul>`;
-            if (totalPages <= 1) return;
-            const ul = container.querySelector('.pagination');
-            const createPageItem = (page, text, disabled = false, active = false) => `<li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}"><a class="page-link" href="#" data-page="${page}">${text}</a></li>`;
-            ul.innerHTML += createPageItem(currentPage - 1, 'Anterior', currentPage === 1);
-            let startPage = Math.max(1, currentPage - 2), endPage = Math.min(totalPages, currentPage + 2);
-            if (currentPage <= 3) endPage = Math.min(5, totalPages);
-            if (currentPage > totalPages - 3) startPage = Math.max(1, totalPages - 4);
-            if (startPage > 1) ul.innerHTML += createPageItem(1, '1');
-            if (startPage > 2) ul.innerHTML += createPageItem(0, '...', true);
-            for (let i = startPage; i <= endPage; i++) ul.innerHTML += createPageItem(i, i, false, i === currentPage);
-            if (endPage < totalPages - 1) ul.innerHTML += createPageItem(0, '...', true);
-            if (endPage < totalPages) ul.innerHTML += createPageItem(totalPages, totalPages);
-            ul.innerHTML += createPageItem(currentPage + 1, 'Próximo', currentPage === totalPages);
-            ul.querySelectorAll('a.page-link').forEach(link => link.addEventListener('click', e => { e.preventDefault(); const page = parseInt(e.target.getAttribute('data-page')); if (page) { paginacaoConfig.currentPage = page; exibirDadosPaginados(); } }));
-        }
-        // --- FIM DA SEÇÃO DE EXIBIÇÃO E PAGINAÇÃO ---
-
-        // --- INÍCIO DA SEÇÃO DE GRÁFICOS E EXPORTAÇÃO ---
-        function criarGraficos(dados) {
-            const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
-            const ctxReservas = document.getElementById('graficoReservasDia').getContext('2d');
-            const statusCounts = dados.reduce((acc, i) => { const status = i.confirmado || 'Pendente'; acc[status] = (acc[status] || 0) + 1; return acc; }, {});
-            if (graficoStatus) graficoStatus.destroy();
-            graficoStatus = new Chart(ctxStatus, { type: 'doughnut', data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#f6c23e', '#1cc88a', '#e74a3b'], hoverBackgroundColor: ['#dda91a', '#17a673', '#c82333'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } } });
-            const ReservasPorDia = dados.reduce((acc, i) => { const data = new Date(i.submittedat).toLocaleDateString('pt-BR'); acc[data] = (acc[data] || 0) + 1; return acc; }, {});
-            const sortedDates = Object.keys(ReservasPorDia).sort((a, b) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-')));
-            const sortedCounts = sortedDates.map(date => ReservasPorDia[date]);
-            if (graficoReservasDia) graficoReservasDia.destroy();
-            graficoReservasDia = new Chart(ctxReservas, { type: 'line', data: { labels: sortedDates, datasets: [{ label: "Reservas", data: sortedCounts, borderColor: 'rgba(78, 115, 223, 1)', backgroundColor: 'rgba(78, 115, 223, 0.05)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
-        }
+        async function carregarDados() { document.getElementById('loading').style.display = 'flex'; document.getElementById('tabela-vendas').style.display = 'none'; try { const response = await fetch(`${SCRIPT_URL}?acao=ler&timestamp=${new Date().getTime()}`); const data = await response.json(); if (data.success) { todasVendas = data.inscricoes; filtrarDados(); if (window.Chart) criarGraficos(todasVendas); } else { alert('Erro ao carregar dados: ' + data.message); } } catch (error) { console.error('Erro:', error); alert('Erro ao conectar com a planilha.'); } finally { document.getElementById('loading').style.display = 'none'; document.getElementById('tabela-vendas').style.display = 'table'; } }
+        function filtrarDados() { const termo = document.getElementById('inputPesquisa').value.toLowerCase(); dadosFiltrados = !termo ? [...todasVendas] : todasVendas.filter(venda => Object.values(venda).some(val => String(val).toLowerCase().includes(termo))); ordenarEExibir(); }
+        function ordenarEExibir() { const { column, direction } = sortConfig; dadosFiltrados.sort((a, b) => { let valA = a[column] || '', valB = b[column] || ''; if (['preco', 'quantidade'].includes(column)) { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; } else if (column === 'submittedat') { valA = new Date(valA).getTime() || 0; valB = new Date(valB).getTime() || 0; } else { valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase(); } if (valA < valB) return direction === 'asc' ? -1 : 1; if (valA > valB) return direction === 'asc' ? 1 : -1; return 0; }); document.querySelectorAll('.sortable').forEach(h => { h.classList.remove('asc', 'desc'); if (h.getAttribute('data-column') === column) h.classList.add(direction); }); exibirDadosPaginados(); }
+        function exibirDadosPaginados() { const { currentPage, itemsPerPage } = paginacaoConfig; const start = (currentPage - 1) * itemsPerPage; const end = start + itemsPerPage; exibirDadosNaTabela(dadosFiltrados.slice(start, end)); atualizarControlesPaginacao(); }
+        function exibirDadosNaTabela(dados) { const tbody = document.querySelector('#tabela-vendas tbody'); tbody.innerHTML = dados.length === 0 ? '<tr><td colspan="8" class="text-center">Nenhuma venda encontrada</td></tr>' : ''; dados.forEach(venda => { const tr = document.createElement('tr'); const dataFormatada = venda.submittedat ? new Date(venda.submittedat).toLocaleDateString('pt-BR') : 'N/A'; let status = venda.confirmado || 'Pendente'; let comprovanteHTML = 'N/A'; if (venda.comprovante) { if (venda.comprovante.toLowerCase().includes('.pdf') || venda.comprovante.includes('drive.google.com')) { comprovanteHTML = `<a href="${venda.comprovante}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-alt"></i> Ver</a>`; } else { comprovanteHTML = `<img src="${venda.comprovante}" style="max-width:60px; cursor:pointer;" data-bs-toggle="modal" data-bs-target="#modalComprovante" onclick="document.getElementById('comprovante-img').src='${venda.comprovante}'">`; } } tr.innerHTML = `<td>${venda.nome||'N/A'}</td><td>${venda.contato||'N/A'}</td><td>${venda.quantidade||'N/A'}</td><td>${venda.preco?'R$ '+parseFloat(venda.preco).toFixed(2):'N/A'}</td><td>${dataFormatada}</td><td>${comprovanteHTML}</td><td><span class="badge bg-${status.toLowerCase()=='confirmado'?'success':status.toLowerCase()=='cancelado'?'danger':'warning'} text-dark">${status}</span></td><td><button class="btn btn-sm btn-outline-primary" onclick="abrirModalEditar('${venda.id}')"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="abrirModalDeletar('${venda.id}')"><i class="fas fa-trash"></i></button></td>`; tbody.appendChild(tr); }); }
+        function atualizarControlesPaginacao() { const { currentPage, itemsPerPage } = paginacaoConfig; const totalPages = Math.ceil(dadosFiltrados.length / itemsPerPage); const container = document.getElementById('paginacao-controles'); container.innerHTML = `<span class="text-muted">Exibindo ${dadosFiltrados.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} a ${Math.min(currentPage * itemsPerPage, dadosFiltrados.length)} de ${dadosFiltrados.length}</span><ul class="pagination mb-0"></ul>`; if (totalPages <= 1) return; const ul = container.querySelector('.pagination'); const createPageItem = (page, text, disabled = false, active = false) => `<li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}"><a class="page-link" href="#" data-page="${page}">${text}</a></li>`; ul.innerHTML += createPageItem(currentPage - 1, 'Anterior', currentPage === 1); let startPage = Math.max(1, currentPage - 2), endPage = Math.min(totalPages, currentPage + 2); if (currentPage <= 3) endPage = Math.min(5, totalPages); if (currentPage > totalPages - 3) startPage = Math.max(1, totalPages - 4); if (startPage > 1) ul.innerHTML += createPageItem(1, '1'); if (startPage > 2) ul.innerHTML += createPageItem(0, '...', true); for (let i = startPage; i <= endPage; i++) ul.innerHTML += createPageItem(i, i, false, i === currentPage); if (endPage < totalPages - 1) ul.innerHTML += createPageItem(0, '...', true); if (endPage < totalPages) ul.innerHTML += createPageItem(totalPages, totalPages); ul.innerHTML += createPageItem(currentPage + 1, 'Próximo', currentPage === totalPages); ul.querySelectorAll('a.page-link').forEach(link => link.addEventListener('click', e => { e.preventDefault(); const page = parseInt(e.target.getAttribute('data-page')); if (page) { paginacaoConfig.currentPage = page; exibirDadosPaginados(); } })); }
+        function criarGraficos(dados) { const ctxStatus = document.getElementById('graficoStatus').getContext('2d'); const ctxVendas = document.getElementById('graficoVendasDia').getContext('2d'); const statusCounts = dados.reduce((acc, i) => { const status = i.confirmado || 'Pendente'; acc[status] = (acc[status] || 0) + 1; return acc; }, {}); if (graficoStatus) graficoStatus.destroy(); graficoStatus = new Chart(ctxStatus, { type: 'doughnut', data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#f6c23e', '#1cc88a', '#e74a3b'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } } }); const vendasPorDia = dados.reduce((acc, i) => { const data = new Date(i.submittedat).toLocaleDateString('pt-BR'); acc[data] = (acc[data] || 0) + 1; return acc; }, {}); const sortedDates = Object.keys(vendasPorDia).sort((a, b) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-'))); const sortedCounts = sortedDates.map(date => vendasPorDia[date]); if (graficoVendasDia) graficoVendasDia.destroy(); graficoVendasDia = new Chart(ctxVendas, { type: 'line', data: { labels: sortedDates, datasets: [{ label: "Vendas", data: sortedCounts, borderColor: 'rgba(78, 115, 223, 1)', backgroundColor: 'rgba(78, 115, 223, 0.05)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } }); }
 
         async function exportarPDF() {
             if (dadosFiltrados.length === 0) { alert("Não há dados para exportar."); return; }
-            
-            const btn = document.getElementById('btnExportarPDF');
-            const spinner = btn.querySelector('.spinner-border');
-            const icon = btn.querySelector('.fa-file-pdf');
-
-            // Mostra o spinner e desabilita o botão
-            spinner.classList.remove('d-none');
-            icon.classList.add('d-none');
-            btn.disabled = true;
+            const btn = document.getElementById('btnExportarPDF'), spinner = btn.querySelector('.spinner-border'), icon = btn.querySelector('.fa-file-pdf');
+            spinner.classList.remove('d-none'); icon.classList.add('d-none'); btn.disabled = true;
 
             try {
-                // Carrega as bibliotecas de PDF sob demanda
-                await Promise.all([
-                    loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" ),
-                    loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf-autotable.min.js" )
-                ]);
+                await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" );
+                // --- LINHA CORRIGIDA ---
+                await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf-autotable.min.js" );
 
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
-
-                doc.setFontSize(18); doc.text("Relatório de Reservas", 14, 22);
+                const doc = new window.jspdf.jsPDF();
+                doc.setFontSize(18); doc.text("Relatório de Vendas", 14, 22);
                 doc.setFontSize(11); doc.setTextColor(100);
                 doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
-                doc.text(`Total de Reservas no filtro: ${dadosFiltrados.length}`, 14, 35);
-
+                doc.text(`Total de vendas no filtro: ${dadosFiltrados.length}`, 14, 35);
                 const head = [['Cliente', 'Contato', 'Qtde', 'Preço', 'Data da Venda', 'Status']];
                 const body = dadosFiltrados.map(venda => [ venda.nome || 'N/A', venda.contato || 'N/A', venda.quantidade || 'N/A', venda.preco ? `R$ ${parseFloat(venda.preco).toFixed(2)}` : 'N/A', venda.submittedat ? new Date(venda.submittedat).toLocaleDateString('pt-BR') : 'N/A', venda.confirmado || 'Pendente' ]);
-
                 doc.autoTable({ head: head, body: body, startY: 40, theme: 'striped', headStyles: { fillColor: [78, 115, 223], textColor: [255, 255, 255] }, styles: { font: 'helvetica', fontSize: 9 } });
-                doc.save('relatorio_Reservas.pdf');
-
+                doc.save('relatorio_vendas.pdf');
             } catch (error) {
                 console.error("Falha ao gerar PDF:", error);
-                alert("Ocorreu um erro ao gerar o PDF. Verifique o console para mais detalhes.");
+                alert("Ocorreu um erro ao gerar o PDF. Por favor, tente novamente. Se o erro persistir, verifique o console.");
             } finally {
-                // Restaura o botão ao estado original
-                spinner.classList.add('d-none');
-                icon.classList.remove('d-none');
-                btn.disabled = false;
+                spinner.classList.add('d-none'); icon.classList.remove('d-none'); btn.disabled = false;
             }
         }
-        // --- FIM DA SEÇÃO DE GRÁFICOS E EXPORTAÇÃO ---
 
-        // --- INÍCIO DA SEÇÃO DE AÇÕES (CRUD) ---
-        function abrirModalEditar(id) { vendaEditando = todasReservas.find(v => v.id == id); if(vendaEditando){ document.getElementById('nome-cliente').textContent = vendaEditando.nome || 'N/A'; document.getElementById('selectStatus').value = vendaEditando.confirmado || 'Pendente'; new bootstrap.Modal(document.getElementById('modalStatus')).show(); } }
-        function abrirModalDeletar(id) { vendaDeletando = todasReservas.find(v => v.id == id); if(vendaDeletando){ document.getElementById('nome-deletar').textContent = vendaDeletando.nome || 'N/A'; new bootstrap.Modal(document.getElementById('modalDeletar')).show(); } }
+        function abrirModalEditar(id) { vendaEditando = todasVendas.find(v => v.id == id); if(vendaEditando){ document.getElementById('nome-cliente').textContent = vendaEditando.nome || 'N/A'; document.getElementById('selectStatus').value = vendaEditando.confirmado || 'Pendente'; new bootstrap.Modal(document.getElementById('modalStatus')).show(); } }
+        function abrirModalDeletar(id) { vendaDeletando = todasVendas.find(v => v.id == id); if(vendaDeletando){ document.getElementById('nome-deletar').textContent = vendaDeletando.nome || 'N/A'; new bootstrap.Modal(document.getElementById('modalDeletar')).show(); } }
         async function salvarStatus() { if (!vendaEditando) return; const novoStatus = document.getElementById('selectStatus').value; try { const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `acao=atualizar&id=${vendaEditando.id}&status=${novoStatus}` }); const data = await res.json(); if (data.success) { alert('Status atualizado!'); bootstrap.Modal.getInstance(document.getElementById('modalStatus')).hide(); carregarDados(); } else { alert('Erro: ' + data.message); } } catch (e) { alert('Erro de conexão.'); } }
         async function deletarVenda() { if (!vendaDeletando) return; try { const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `acao=deletar&id=${vendaDeletando.id}` }); const data = await res.json(); if (data.success) { alert('Venda deletada!'); bootstrap.Modal.getInstance(document.getElementById('modalDeletar')).hide(); carregarDados(); } else { alert('Erro: ' + data.message); } } catch (e) { alert('Erro de conexão.'); } }
-        // --- FIM DA SEÇÃO DE AÇÕES (CRUD) ---
     </script>
 </body>
 </html>
